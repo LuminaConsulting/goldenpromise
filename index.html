@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Golden Promise">
+    <meta name="apple-mobile-web-app-title" content="Gold & Promise">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
-    <title>Golden Promise - Command Center</title>
+    <title>Gold & Promise - Command Center</title>
     <style>
         :root {
             --gold: #d4af37;
@@ -168,7 +168,7 @@
                 </svg>
             </div>
             <div class="brand-text">
-                <h1>Golden Promise</h1>
+                <h1>Gold & Promise</h1>
                 <p>Command Center</p>
             </div>
         </div>
@@ -187,7 +187,11 @@
     </header>
 
     <nav class="nav">
-        <button class="nav-btn active" onclick="showSection('dashboard')">
+        <button class="nav-btn active" onclick="showSection('pos')">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            POS
+        </button>
+        <button class="nav-btn" onclick="showSection('dashboard')">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
             Dashboard
         </button>
@@ -203,10 +207,6 @@
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
             Investors
         </button>
-        <button class="nav-btn" onclick="showSection('pos')">
-            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-            POS
-        </button>
         <button class="nav-btn" onclick="showSection('sellers')">
             <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
             Sellers
@@ -218,7 +218,7 @@
     </nav>
 
     <main class="content">
-        <section id="dashboard" class="section active">
+        <section id="dashboard" class="section">
             <div class="metrics-grid">
                 <div class="metric-card">
                     <div class="metric-label">Inventory Value</div>
@@ -399,7 +399,7 @@
             <div id="investorList"></div>
         </section>
 
-        <section id="pos" class="section">
+        <section id="pos" class="section active">
             <div class="card">
                 <div class="card-title" style="margin-bottom:16px">Purchase from Seller / Flip to Wholesale</div>
                 <div class="form-row">
@@ -1792,7 +1792,7 @@ function exportExcel() {
     XLSX.utils.book_append_sheet(wb, ws6, 'Current Inventory');
 
     // Download
-    XLSX.writeFile(wb, 'GoldenPromise-' + new Date().toISOString().split('T')[0] + '.xlsx');
+    XLSX.writeFile(wb, 'GoldAndPromise-' + new Date().toISOString().split('T')[0] + '.xlsx');
 }
 
 function importData(input) {
