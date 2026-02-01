@@ -1,0 +1,2187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Gold & Promise - Command Center</title>
+    <style>
+        :root {
+            --gold: #d4af37;
+            --gold-light: #f4d03f;
+            --silver: #c0c0c0;
+            --navy: #1a237e;
+            --navy-light: #283593;
+            --charcoal: #2d3748;
+            --bg: #ffffff;
+            --fg: #1a202c;
+            --card: #ffffff;
+            --muted: #f7fafc;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+        .dark { --bg: #0d1117; --fg: #e6edf3; --card: #161b22; --muted: #21262d; --border: #30363d; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--fg); min-height: 100vh; padding-bottom: 80px; }
+        .header { position: sticky; top: 0; z-index: 100; background: rgba(255,255,255,0.9); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; }
+        .dark .header { background: rgba(13,17,23,0.9); }
+        .brand { display: flex; align-items: center; gap: 10px; }
+        .logo { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
+        .brand-text h1 { font-size: 16px; font-weight: 700; background: linear-gradient(90deg, var(--gold), var(--gold-light)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .brand-text p { font-size: 11px; color: #718096; }
+        .header-actions { display: flex; gap: 8px; }
+        .icon-btn { width: 36px; height: 36px; border-radius: 8px; border: none; background: var(--muted); display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; }
+        .icon-btn:active { transform: scale(0.95); }
+        .badge { position: absolute; top: -4px; right: -4px; background: var(--danger); color: white; font-size: 10px; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .nav { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; scrollbar-width: none; }
+        .nav::-webkit-scrollbar { display: none; }
+        .nav-btn { flex-shrink: 0; padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border); background: var(--card); color: var(--fg); font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px; }
+        .nav-btn.active { background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%); color: var(--navy); border-color: transparent; }
+        .content { padding: 0 16px 16px; }
+        .section { display: none; }
+        .section.active { display: block; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; box-shadow: 0 4px 20px -4px rgba(0,0,0,0.1); }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .card-title { font-size: 14px; font-weight: 600; }
+        .card-subtitle { font-size: 11px; color: #718096; }
+        .metrics-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 12px; }
+        .metric-card { background: var(--card); border: 1px solid var(--border); border-left: 3px solid var(--gold); border-radius: 10px; padding: 12px; }
+        .metric-card.navy { border-left-color: var(--navy); }
+        .metric-card.silver { border-left-color: var(--silver); }
+        .metric-card.success { border-left-color: var(--success); }
+        .metric-label { font-size: 11px; color: #718096; margin-bottom: 4px; }
+        .metric-value { font-size: 18px; font-weight: 700; }
+        .metric-change { font-size: 11px; }
+        .metric-change.positive { color: var(--success); }
+        .metric-change.negative { color: var(--danger); }
+        .prices-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .price-item { background: var(--muted); border-radius: 8px; padding: 10px; text-align: center; }
+        .price-metal { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12px; font-weight: 500; margin-bottom: 4px; }
+        .price-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .price-dot.gold { background: var(--gold); }
+        .price-dot.silver { background: var(--silver); }
+        .price-dot.platinum { background: #e5e4e2; }
+        .price-dot.palladium { background: #b5b5b5; }
+        .price-value { font-size: 16px; font-weight: 700; }
+        .price-change { font-size: 11px; display: flex; align-items: center; justify-content: center; gap: 2px; }
+        .price-change.up { color: var(--success); }
+        .price-change.down { color: var(--danger); }
+        .ratio-banner { background: linear-gradient(90deg, rgba(212,175,55,0.1), rgba(192,192,192,0.1)); border: 1px solid rgba(212,175,55,0.3); border-radius: 10px; padding: 12px; margin-top: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .ratio-label { font-size: 12px; font-weight: 500; }
+        .ratio-hint { font-size: 10px; color: #718096; }
+        .ratio-value { font-size: 24px; font-weight: 700; }
+        .ratio-value.high { color: var(--success); }
+        .ratio-value.low { color: var(--danger); }
+        .btn { padding: 12px 20px; border-radius: 10px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
+        .btn:active { transform: scale(0.98); }
+        .btn-gold { background: linear-gradient(135deg, var(--gold) 0%, #c9a227 100%); color: var(--navy); }
+        .btn-navy { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%); color: white; }
+        .btn-outline { background: var(--card); border: 1px solid var(--border); color: var(--fg); }
+        .btn-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 12px; }
+        .alert-card { background: rgba(239,68,68,0.05); border: 1px solid rgba(239,68,68,0.3); border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+        .alert-header { display: flex; align-items: center; gap: 8px; color: var(--danger); font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+        .alert-item { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; }
+        .search-box { position: relative; margin-bottom: 12px; }
+        .search-box input { width: 100%; padding: 10px 10px 10px 36px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); color: var(--fg); font-size: 14px; }
+        .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #718096; }
+        .tier-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+        .tier-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 10px; text-align: center; }
+        .tier-label { font-size: 10px; color: #718096; }
+        .tier-value { font-size: 20px; font-weight: 700; }
+        .tier-sub { font-size: 10px; color: #718096; }
+        .inventory-item { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 8px; }
+        .item-header { display: flex; gap: 10px; margin-bottom: 8px; }
+        .item-icon { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .item-icon.gold { background: rgba(212,175,55,0.15); }
+        .item-icon.silver { background: rgba(192,192,192,0.15); }
+        .item-icon.platinum { background: rgba(229,228,226,0.15); }
+        .item-icon.palladium { background: rgba(181,181,181,0.15); }
+        .item-info { flex: 1; }
+        .item-serial { font-weight: 600; font-size: 14px; }
+        .item-desc { font-size: 12px; color: #718096; }
+        .item-badges { display: flex; gap: 4px; margin-top: 4px; }
+        .badge-small { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: var(--muted); }
+        .badge-small.tier1 { background: var(--gold); color: var(--navy); }
+        .badge-small.tier2 { background: var(--navy); color: white; }
+        .badge-small.danger { background: var(--danger); color: white; }
+        .item-actions { display: flex; gap: 8px; margin-top: 8px; }
+        .item-btn { flex: 1; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--muted); font-size: 12px; cursor: pointer; }
+        .form-group { margin-bottom: 12px; }
+        .form-label { display: block; font-size: 12px; font-weight: 500; margin-bottom: 4px; }
+        .form-input, .form-select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--card); color: var(--fg); font-size: 14px; }
+        .form-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: flex-end; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--bg); border-radius: 20px 20px 0 0; width: 100%; max-height: 90vh; overflow-y: auto; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .modal-header { padding: 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .modal-title { font-size: 16px; font-weight: 600; }
+        .modal-close { width: 32px; height: 32px; border-radius: 50%; border: none; background: var(--muted); cursor: pointer; }
+        .modal-body { padding: 16px; }
+        .modal-footer { padding: 16px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
+        .chart-container { height: 250px; margin: 12px 0; }
+        .insight-card { background: linear-gradient(135deg, rgba(26,35,126,0.05) 0%, rgba(212,175,55,0.05) 100%); border: 1px solid rgba(212,175,55,0.3); border-radius: 10px; padding: 12px; }
+        .insight-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .insight-title { font-weight: 600; font-size: 14px; }
+        .confidence-bar { height: 6px; background: var(--muted); border-radius: 3px; overflow: hidden; margin: 8px 0; }
+        .confidence-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-light)); border-radius: 3px; transition: width 0.5s ease; }
+        .insight-text { font-size: 13px; line-height: 1.5; color: #4a5568; }
+        .dark .insight-text { color: #a0aec0; }
+        .empty-state { text-align: center; padding: 40px 20px; }
+        .empty-icon { font-size: 48px; margin-bottom: 16px; }
+        .empty-text { color: #718096; margin-bottom: 16px; }
+        .signature-pad { border: 2px dashed var(--border); border-radius: 10px; height: 120px; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #718096; cursor: pointer; }
+        .checkbox-list { max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
+        .checkbox-item { display: flex; align-items: center; gap: 8px; padding: 8px; border-bottom: 1px solid var(--border); }
+        .checkbox-item:last-child { border-bottom: none; }
+        .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+        .setting-item:last-child { border-bottom: none; }
+        .toggle { width: 48px; height: 26px; background: var(--muted); border-radius: 13px; position: relative; cursor: pointer; transition: background 0.3s; }
+        .toggle.active { background: var(--gold); }
+        .toggle-knob { width: 22px; height: 22px; background: white; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: transform 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .toggle.active .toggle-knob { transform: translateX(22px); }
+        .icon { width: 20px; height: 20px; display: inline-block; vertical-align: middle; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--muted); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="brand">
+            <div class="logo">
+                <svg viewBox="0 0 100 100" width="40" height="40">
+                    <defs>
+                        <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#8B1A1A;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#A52A2A;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <rect x="50" y="50" width="60" height="60" transform="rotate(45 50 50)" fill="url(#logoGrad)" stroke="#E8DCC4" stroke-width="3"/>
+                    <text x="50" y="68" font-family="Georgia, serif" font-size="48" font-weight="bold" fill="#E8DCC4" text-anchor="middle">G</text>
+                </svg>
+            </div>
+            <div class="brand-text">
+                <h1>Golden Promise</h1>
+                <p>Command Center</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="icon-btn" onclick="showAlerts()">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
+                <span class="badge" id="alertBadge" style="display:none">0</span>
+            </button>
+            <button class="icon-btn" onclick="toggleDarkMode()">
+                <svg class="icon" id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+            </button>
+            <button class="icon-btn" onclick="showSettings()">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            </button>
+        </div>
+    </header>
+
+    <nav class="nav">
+        <button class="nav-btn active" onclick="showSection('dashboard')">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+            Dashboard
+        </button>
+        <button class="nav-btn" onclick="showSection('market')">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+            Market
+        </button>
+        <button class="nav-btn" onclick="showSection('inventory')">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+            Inventory
+        </button>
+        <button class="nav-btn" onclick="showSection('investors')">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            Investors
+        </button>
+        <button class="nav-btn" onclick="showSection('pos')">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            POS
+        </button>
+        <button class="nav-btn" onclick="showSection('sellers')">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            Sellers
+        </button>
+        <button class="nav-btn" onclick="showSection('buyers')">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="12 2 12 12 18 10"></polyline></svg>
+            Buyers
+        </button>
+    </nav>
+
+    <main class="content">
+        <section id="dashboard" class="section active">
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-label">Inventory Value</div>
+                    <div class="metric-value" id="invValue">$0</div>
+                    <div class="metric-change" id="invChange">+0%</div>
+                </div>
+                <div class="metric-card navy">
+                    <div class="metric-label">Runway</div>
+                    <div class="metric-value" id="runway">0 mo</div>
+                    <div class="metric-change" id="cashReserves">$0 cash</div>
+                </div>
+                <div class="metric-card silver">
+                    <div class="metric-label">OPC Deployed</div>
+                    <div class="metric-value" id="opcTotal">$0</div>
+                    <div class="metric-change" id="investorCount">0 investors</div>
+                </div>
+                <div class="metric-card success">
+                    <div class="metric-label">Realized P&L</div>
+                    <div class="metric-value" id="realizedPnL">$0</div>
+                    <div class="metric-change">YTD profit</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">Live Spot Prices (CAD)</div>
+                        <div class="card-subtitle" id="lastUpdated">Last updated: --</div>
+                    </div>
+                    <div style="display:flex;gap:4px">
+                        <button class="icon-btn" onclick="showManualPriceUpdate()" title="Manual price update">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        </button>
+                        <button class="icon-btn" onclick="fetchMarketData()">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="prices-grid" id="pricesGrid">
+                    <div class="price-item"><div class="price-metal"><span class="price-dot gold"></span>Gold</div><div class="price-value" id="goldPrice">--</div><div class="price-change" id="goldChange">--</div></div>
+                    <div class="price-item"><div class="price-metal"><span class="price-dot silver"></span>Silver</div><div class="price-value" id="silverPrice">--</div><div class="price-change" id="silverChange">--</div></div>
+                    <div class="price-item"><div class="price-metal"><span class="price-dot platinum"></span>Platinum</div><div class="price-value" id="platinumPrice">--</div><div class="price-change" id="platinumChange">--</div></div>
+                    <div class="price-item"><div class="price-metal"><span class="price-dot palladium"></span>Palladium</div><div class="price-value" id="palladiumPrice">--</div><div class="price-change" id="palladiumChange">--</div></div>
+                </div>
+                <div class="ratio-banner">
+                    <div><div class="ratio-label">Gold/Silver Ratio</div><div class="ratio-hint">Historical mean: ~55:1</div></div>
+                    <div class="ratio-value" id="gsRatio">--:1</div>
+                </div>
+            </div>
+
+            <div class="btn-grid">
+                <button class="btn btn-gold" onclick="showAddItemModal()">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Add Inventory
+                </button>
+                <button class="btn btn-navy" onclick="showAddInvestorModal()">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                    Add Investor
+                </button>
+                <button class="btn btn-outline" onclick="showMarketInsight('market')">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                    Market Insights
+                </button>
+                <button class="btn btn-outline" onclick="showSection('pos')">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    New Sale
+                </button>
+            </div>
+
+            <div id="velocityAlerts"></div>
+            <div id="concentrationAlerts"></div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Metal Concentration</div>
+                    <div class="card-subtitle">Portfolio exposure by metal</div>
+                </div>
+                <div id="metalMixBreakdown"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Unrealized P&L by Metal</div>
+                    <div class="card-subtitle">Current gain/loss on held inventory</div>
+                </div>
+                <div id="unrealizedPL"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Items by Performance</div>
+                    <div class="card-subtitle">Sort by profitability</div>
+                </div>
+                <div style="margin-bottom:12px">
+                    <button class="btn btn-outline" onclick="showUnderwaterItems()" style="font-size:12px;padding:8px 12px">Show Underwater Items</button>
+                </div>
+                <div id="performanceBreakdown"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">Spread Analysis</div>
+                    <div class="card-subtitle">Profitability by purity (last 30 days)</div>
+                </div>
+                <div id="spreadAnalysis"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><div class="card-title">Metal Holdings</div></div>
+                <div class="prices-grid" id="metalHoldings"></div>
+            </div>
+        </section>
+
+        <section id="market" class="section">
+            <div class="card">
+                <div class="card-header">
+                    <div><div class="card-title">Price History (1 Year)</div><div class="card-subtitle">Gold, Silver & Platinum in CAD</div></div>
+                    <button class="btn btn-outline" onclick="showMarketInsight('market')" style="width:auto;padding:8px 12px;font-size:12px">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                        Analysis
+                    </button>
+                </div>
+                <div class="chart-container"><canvas id="priceChart"></canvas></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><div><div class="card-title">Gold/Silver Ratio</div><div class="card-subtitle">Historical ratio with key levels</div></div></div>
+                <div class="chart-container"><canvas id="ratioChart"></canvas></div>
+            </div>
+
+            <div class="card">
+                <div class="card-title" style="margin-bottom:12px">Market Insights</div>
+                <button class="btn btn-outline" onclick="showMarketInsight('buy')" style="margin-bottom:8px">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline></svg>
+                    Buy Recommendation
+                </button>
+                <button class="btn btn-outline" onclick="showMarketInsight('inventory')" style="margin-bottom:8px">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                    Portfolio Analysis
+                </button>
+                <button class="btn btn-outline" onclick="showMarketInsight('investors')">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
+                    Investor Analysis
+                </button>
+            </div>
+        </section>
+
+        <section id="inventory" class="section">
+            <div class="search-box">
+                <svg class="search-icon icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" id="inventorySearch" placeholder="Search inventory..." oninput="filterInventory()">
+            </div>
+
+            <div class="tier-grid">
+                <div class="tier-card"><div class="tier-label">Tier 1 (Personal)</div><div class="tier-value" id="tier1Count">0</div><div class="tier-sub">items</div></div>
+                <div class="tier-card"><div class="tier-label">Tier 2 (OPC)</div><div class="tier-value" id="tier2Count">0</div><div class="tier-sub">items</div></div>
+                <div class="tier-card"><div class="tier-label">Tier 3 (Consign)</div><div class="tier-value" id="tier3Count">0</div><div class="tier-sub">items</div></div>
+            </div>
+
+            <button class="btn btn-gold" onclick="showAddItemModal()" style="margin-bottom:12px">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Add Item
+            </button>
+
+            <div id="inventoryList"></div>
+        </section>
+
+        <section id="investors" class="section">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                <div><h2 style="font-size:16px">Investor Management</h2><p style="font-size:12px;color:#718096">Total OPC: <span id="investorOpcTotal">$0</span></p></div>
+                <button class="btn btn-navy" onclick="showAddInvestorModal()" style="width:auto;padding:10px 16px">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Add
+                </button>
+            </div>
+            <div id="concentrationWarning"></div>
+            <div id="upcomingMaturities"></div>
+            <div id="investorList"></div>
+        </section>
+
+        <section id="pos" class="section">
+            <div class="card">
+                <div class="card-title" style="margin-bottom:16px">Purchase from Seller / Flip to Wholesale</div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Seller Name</label><input type="text" class="form-input" id="posClientName" placeholder="Who is selling to you?"></div>
+                    <div class="form-group"><label class="form-label">Seller Email</label><input type="email" class="form-input" id="posClientEmail" placeholder="email@example.com"></div>
+                </div>
+                <div class="form-group"><label class="form-label">Seller Phone</label><input type="tel" class="form-input" id="posClientPhone" placeholder="(555) 123-4567"></div>
+                <div class="form-group">
+                    <label class="form-label">Source/How they found you</label>
+                    <select class="form-select" id="posSource">
+                        <option value="facebook">Facebook</option>
+                        <option value="google">Google</option>
+                        <option value="driving_by">Driving By</option>
+                        <option value="recommendation">Recommendation</option>
+                        <option value="return">Return Seller</option>
+                        <option value="unknown">Unknown</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Transaction Type</label>
+                    <select class="form-select" id="posType" onchange="toggleWholesaleFields()"><option value="buy">Purchase from Seller</option><option value="flip">Flip to Wholesale</option></select>
+                </div>
+                <div class="form-group"><label class="form-label">Select Items</label><div class="checkbox-list" id="posItemList"></div></div>
+                <div id="wholesaleFields" style="display:none">
+                    <div class="form-group">
+                        <label class="form-label">Wholesale Buyer</label>
+                        <select class="form-select" id="posBuyer"></select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Sell Price (CAD)</label>
+                        <input type="number" class="form-input" id="posSellPrice" placeholder="Total sell price" step="0.01">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <button class="btn btn-outline" onclick="capturePhoto()">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                        Capture Photo
+                    </button>
+                    <button class="btn btn-outline" onclick="scanSerial()">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7"></path><line x1="3" y1="7" x2="21" y2="7"></line></svg>
+                        Scan Serial
+                    </button>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Client Signature</label>
+                    <div class="signature-pad" onclick="openSignaturePad()" id="signaturePreview">
+                        <svg class="icon" style="width:32px;height:32px;margin-bottom:8px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17h18l-9-15-9 15z"></path><path d="M12 17v-6"></path></svg>
+                        <span>Tap to sign</span>
+                    </div>
+                </div>
+                <input type="file" id="photoInput" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoCapture(this)">
+                <input type="file" id="scanInput" accept="image/*" capture="environment" style="display:none" onchange="handleScanCapture(this)">
+                <button class="btn btn-gold" onclick="completeTransaction()">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    Complete Transaction
+                </button>
+            </div>
+        </section>
+
+        <section id="sellers" class="section">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                <div><h2 style="font-size:16px">Seller Database</h2><p style="font-size:12px;color:#718096">Track people who sell TO you</p></div>
+                <button class="btn btn-navy" onclick="showAddSellerModal()" style="width:auto;padding:10px 16px">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Add
+                </button>
+            </div>
+            <div id="sellerStats"></div>
+            <div id="sellerList"></div>
+        </section>
+
+        <section id="buyers" class="section">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+                <div><h2 style="font-size:16px">Wholesale Buyers</h2><p style="font-size:12px;color:#718096">Refineries and businesses you sell TO</p></div>
+                <button class="btn btn-navy" onclick="showAddBuyerModal()" style="width:auto;padding:10px 16px">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Add
+                </button>
+            </div>
+            <div id="buyerStats"></div>
+            <div id="buyerList"></div>
+        </section>
+    </main>
+
+    <div class="modal-overlay" id="addItemModal">
+        <div class="modal">
+            <div class="modal-header"><div class="modal-title">Add Inventory Item</div><button class="modal-close" onclick="closeModal('addItemModal')">&times;</button></div>
+            <div class="modal-body">
+                <div class="form-group"><label class="form-label">Serial Number</label><input type="text" class="form-input" id="itemSerial" placeholder="e.g., RCM-2024-001"></div>
+                <div class="form-group"><label class="form-label">Description</label><input type="text" class="form-input" id="itemDesc" placeholder="e.g., 1 oz Gold Maple Leaf"></div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Metal Type</label><select class="form-select" id="itemMetal" onchange="updatePurityOptions()"><option value="gold">Gold</option><option value="silver">Silver</option><option value="platinum">Platinum</option><option value="palladium">Palladium</option></select></div>
+                    <div class="form-group"><label class="form-label">Purity</label><select class="form-select" id="itemPurity"></select></div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group"><label class="form-label">Weight</label><input type="number" class="form-input" id="itemWeight" placeholder="1.0" step="0.001"></div>
+                    <div class="form-group"><label class="form-label">Unit</label><select class="form-select" id="itemUnit"><option value="oz">oz</option><option value="g">grams</option><option value="kg">kg</option></select></div>
+                </div>
+                <div class="form-group"><label class="form-label">Tier</label><select class="form-select" id="itemTier"><option value="1">Tier 1 (Personal)</option><option value="2">Tier 2 (OPC)</option><option value="3">Tier 3 (Consignment)</option></select></div>
+                <div class="form-group"><label class="form-label">Buy Price (CAD)</label><input type="number" class="form-input" id="itemPrice" placeholder="2500.00" step="0.01"></div>
+                <div class="form-group" id="investorSelectGroup" style="display:none"><label class="form-label">Investor</label><select class="form-select" id="itemInvestor"></select></div>
+                <div class="form-group"><label class="form-label">Refinery Source</label><input type="text" class="form-input" id="itemRefinery" placeholder="e.g., Uncle's Refinery"></div>
+                <div class="form-group"><label class="form-label">Notes</label><textarea class="form-input" id="itemNotes" rows="3" placeholder="Additional notes..."></textarea></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('addItemModal')">Cancel</button><button class="btn btn-gold" onclick="addItem()">Add Item</button></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="addInvestorModal">
+        <div class="modal">
+            <div class="modal-header"><div class="modal-title">Add Investor</div><button class="modal-close" onclick="closeModal('addInvestorModal')">&times;</button></div>
+            <div class="modal-body">
+                <div class="form-group"><label class="form-label">Name</label><input type="text" class="form-input" id="invName" placeholder="Full name"></div>
+                <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="invEmail" placeholder="email@example.com"></div>
+                <div class="form-group"><label class="form-label">Phone</label><input type="tel" class="form-input" id="invPhone" placeholder="(555) 123-4567"></div>
+                <div class="form-group"><label class="form-label">Type</label><select class="form-select" id="invType"><option value="lds">LDS Community</option><option value="secular">Secular/Private</option></select></div>
+                <div class="form-group"><label class="form-label">Initial Investment (CAD)</label><input type="number" class="form-input" id="invAmount" placeholder="10000" step="100"></div>
+                <div class="form-group"><label class="form-label">Agreement End Date</label><input type="date" class="form-input" id="invEndDate"></div>
+                <div class="form-group"><label class="form-label">Notes</label><textarea class="form-input" id="invNotes" rows="3" placeholder="Relationship notes..."></textarea></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('addInvestorModal')">Cancel</button><button class="btn btn-navy" onclick="addInvestor()">Add Investor</button></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="insightModal">
+        <div class="modal">
+            <div class="modal-header"><div class="modal-title">Market Insights</div><button class="modal-close" onclick="closeModal('insightModal')">&times;</button></div>
+            <div class="modal-body"><div id="insightContent"></div></div>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('insightModal')">Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="priceUpdateModal">
+        <div class="modal">
+            <div class="modal-header"><div class="modal-title">Update Spot Prices (CAD)</div><button class="modal-close" onclick="closeModal('priceUpdateModal')">&times;</button></div>
+            <div class="modal-body">
+                <p style="font-size:12px;color:#718096;margin-bottom:12px">Enter current spot prices in CAD from Kitco, BullionDeals, or TD Precious Metals</p>
+                <div class="form-group"><label class="form-label">Gold (CAD/oz)</label><input type="number" class="form-input" id="manualGoldPrice" placeholder="3845.00" step="0.01"></div>
+                <div class="form-group"><label class="form-label">Silver (CAD/oz)</label><input type="number" class="form-input" id="manualSilverPrice" placeholder="42.80" step="0.01"></div>
+                <div class="form-group"><label class="form-label">Platinum (CAD/oz)</label><input type="number" class="form-input" id="manualPlatinumPrice" placeholder="1520.00" step="0.01"></div>
+                <div class="form-group"><label class="form-label">Palladium (CAD/oz)</label><input type="number" class="form-input" id="manualPalladiumPrice" placeholder="1385.00" step="0.01"></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('priceUpdateModal')">Cancel</button><button class="btn btn-gold" onclick="saveManualPrices()">Update Prices</button></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="signatureModal">
+        <div class="modal">
+            <div class="modal-header"><div class="modal-title">Capture Signature</div><button class="modal-close" onclick="closeModal('signatureModal')">&times;</button></div>
+            <div class="modal-body">
+                <canvas id="signatureCanvas" style="width:100%;height:300px;border:2px solid var(--border);border-radius:10px;touch-action:none;background:white;cursor:crosshair"></canvas>
+                <p style="font-size:12px;color:#718096;margin-top:8px;text-align:center">Draw your signature above</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="clearSignature()">Clear</button>
+                <button class="btn btn-gold" onclick="saveSignature()">Save Signature</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal">
+            <div class="modal-header"><div class="modal-title">Settings</div><button class="modal-close" onclick="closeModal('settingsModal')">&times;</button></div>
+            <div class="modal-body">
+                <div class="setting-item"><div><div style="font-weight:500">Cash Reserves (CAD)</div></div><input type="number" class="form-input" id="settingCash" style="width:120px" value="50000"></div>
+                <div class="setting-item"><div><div style="font-weight:500">Monthly Expenses (CAD)</div></div><input type="number" class="form-input" id="settingExpenses" style="width:120px" value="8000"></div>
+                <div class="setting-item"><div><div style="font-weight:500">Personal Capital (CAD)</div></div><input type="number" class="form-input" id="settingPersonal" style="width:120px" value="25000"></div>
+                <div class="setting-item"><div><div style="font-weight:500">Dark Mode</div></div><div class="toggle" id="darkModeToggle" onclick="toggleDarkMode()"><div class="toggle-knob"></div></div></div>
+                <div style="margin-top:16px">
+                    <div style="font-weight:600;margin-bottom:8px">Backup Options</div>
+                    <button class="btn btn-gold" onclick="exportExcel()" style="margin-bottom:8px">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        Export Excel
+                    </button>
+                    <button class="btn btn-outline" onclick="exportData()" style="margin-bottom:8px">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        Export JSON
+                    </button>
+                    <button class="btn btn-outline" onclick="copyBackupToClipboard()" style="margin-bottom:8px">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        Copy to Clipboard
+                    </button>
+                    <button class="btn btn-outline" onclick="downloadTextBackup()" style="margin-bottom:8px">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                        Download Text File
+                    </button>
+                    <label class="btn btn-outline" style="cursor:pointer">
+                        <input type="file" accept=".json" onchange="importData(this)" style="display:none">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        Import Data
+                    </label>
+                    <p style="font-size:11px;color:#718096;margin-top:8px">Copy to Clipboard: Paste into Notes app. Not dependent on Safari history.</p>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-gold" onclick="saveSettings()">Save Settings</button></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="addSellerModal">
+        <div class="modal">
+            <div class="modal-header"><div class="modal-title">Add Seller</div><button class="modal-close" onclick="closeModal('addSellerModal')">&times;</button></div>
+            <div class="modal-body">
+                <div class="form-group"><label class="form-label">Name</label><input type="text" class="form-input" id="sellerName" placeholder="Full name"></div>
+                <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="sellerEmail" placeholder="email@example.com"></div>
+                <div class="form-group"><label class="form-label">Phone</label><input type="tel" class="form-input" id="sellerPhone" placeholder="(555) 123-4567"></div>
+                <div class="form-group">
+                    <label class="form-label">Source</label>
+                    <select class="form-select" id="sellerSource">
+                        <option value="facebook">Facebook</option>
+                        <option value="google">Google</option>
+                        <option value="driving_by">Driving By</option>
+                        <option value="recommendation">Recommendation</option>
+                        <option value="unknown">Unknown</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group"><label class="form-label">Notes</label><textarea class="form-input" id="sellerNotes" rows="3" placeholder="Additional notes..."></textarea></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('addSellerModal')">Cancel</button><button class="btn btn-navy" onclick="addSeller()">Add Seller</button></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="addBuyerModal">
+        <div class="modal">
+            <div class="modal-header"><div class="modal-title">Add Wholesale Buyer</div><button class="modal-close" onclick="closeModal('addBuyerModal')">&times;</button></div>
+            <div class="modal-body">
+                <div class="form-group"><label class="form-label">Business Name</label><input type="text" class="form-input" id="buyerName" placeholder="Refinery or Business Name"></div>
+                <div class="form-group"><label class="form-label">Type</label><select class="form-select" id="buyerType"><option value="refinery">Refinery (95.5% spot)</option><option value="business">Business (100-115% spot)</option><option value="other">Other</option></select></div>
+                <div class="form-group"><label class="form-label">Contact Person</label><input type="text" class="form-input" id="buyerContact" placeholder="Contact name"></div>
+                <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="buyerEmail" placeholder="email@example.com"></div>
+                <div class="form-group"><label class="form-label">Phone</label><input type="tel" class="form-input" id="buyerPhone" placeholder="(555) 123-4567"></div>
+                <div class="form-group"><label class="form-label">Payment Terms</label><input type="text" class="form-input" id="buyerTerms" placeholder="e.g., Net 7 days, Immediate, etc."></div>
+                <div class="form-group"><label class="form-label">Notes</label><textarea class="form-input" id="buyerNotes" rows="3" placeholder="Rates, specialties, etc..."></textarea></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('addBuyerModal')">Cancel</button><button class="btn btn-navy" onclick="addBuyer()">Add Buyer</button></div>
+        </div>
+    </div>
+
+<script>
+// === DATA STORE ===
+// === PURITY OPTIONS ===
+const PURITY_OPTIONS = {
+    gold: ['9k', '10k', '14k', '18k', '21k', '22k', '24k'],
+    silver: ['40', '50', '60', '80', '85', '90', '91', '92.5', '99'],
+    platinum: ['850', '900', '950', '999'],
+    palladium: ['500', '950', '999']
+};
+
+const Store = {
+    get(key, def) { try { return JSON.parse(localStorage.getItem('gp_'+key)) || def; } catch(e) { return def; } },
+    set(key, val) { localStorage.setItem('gp_'+key, JSON.stringify(val)); },
+    inventory: [],
+    investors: [],
+    sellers: [], // People who sell TO Jonathan (walk-in sellers)
+    wholesaleBuyers: [], // Refineries and businesses Jonathan sells TO
+    settings: { cashReserves: 50000, monthlyExpenses: 8000, personalCapital: 25000, darkMode: false, businessModel: 'buying_operation' },
+    marketHistory: [],
+    lastPrices: { gold: 0, silver: 0, platinum: 0, palladium: 0 }
+};
+
+// === INITIALIZATION ===
+function init() {
+    Store.inventory = Store.get('inventory', []);
+    Store.investors = Store.get('investors', []);
+    Store.sellers = Store.get('sellers', []);
+    Store.wholesaleBuyers = Store.get('wholesaleBuyers', []);
+    Store.settings = Store.get('settings', Store.settings);
+    Store.marketHistory = generateMarketHistory();
+
+    // Ensure businessModel is set
+    if (!Store.settings.businessModel) {
+        Store.settings.businessModel = 'buying_operation';
+    }
+
+    if (Store.settings.darkMode) document.body.classList.add('dark');
+
+    document.getElementById('itemTier').onchange = function() {
+        document.getElementById('investorSelectGroup').style.display = this.value === '2' ? 'block' : 'none';
+        if (this.value === '2') updateInvestorSelect();
+    };
+
+    fetchMarketData();
+    renderAll();
+    setInterval(fetchMarketData, 1800000); // 30 min refresh
+}
+
+function generateId() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0;
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+}
+
+function updatePurityOptions() {
+    const metal = document.getElementById('itemMetal').value;
+    const puritySelect = document.getElementById('itemPurity');
+    const options = PURITY_OPTIONS[metal] || [];
+
+    puritySelect.innerHTML = options.map(p => '<option value="' + p + '">' + p + '</option>').join('');
+
+    // Set default to most common purity
+    if (metal === 'gold' && options.includes('14k')) puritySelect.value = '14k';
+    if (metal === 'silver' && options.includes('92.5')) puritySelect.value = '92.5';
+}
+
+function toggleWholesaleFields() {
+    const type = document.getElementById('posType').value;
+    const wholesaleFields = document.getElementById('wholesaleFields');
+    wholesaleFields.style.display = type === 'flip' ? 'block' : 'none';
+
+    if (type === 'flip') {
+        // Populate wholesale buyers dropdown
+        const buyerSelect = document.getElementById('posBuyer');
+        const buyers = Store.wholesaleBuyers || [];
+        buyerSelect.innerHTML = buyers.length === 0 ?
+            '<option value="">No buyers - add one first</option>' :
+            buyers.map(b => '<option value="' + b.id + '">' + b.name + ' (' + b.type + ')</option>').join('');
+    }
+}
+
+function generateMarketHistory() {
+    const history = [];
+    const now = new Date();
+    for (let i = 365; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        const v = Math.sin(i/30) * 0.1 + (Math.random()-0.5)*0.05;
+        history.push({
+            date: d.toISOString().split('T')[0],
+            gold: Math.round(3600 * (1 + v + i*0.0002) * 100) / 100,
+            silver: Math.round(38 * (1 + v*1.5 + i*0.0001) * 100) / 100,
+            platinum: Math.round(1450 * (1 + v*0.8 + i*0.00015) * 100) / 100,
+            ratio: 0
+        });
+    }
+    history.forEach(h => h.ratio = Math.round((h.gold/h.silver) * 100) / 100);
+    return history;
+}
+
+// === MARKET DATA - FREE PUBLIC APIS ===
+async function fetchMarketData() {
+    // Check if we have manually updated prices in localStorage
+    const manualPrices = Store.get('manualPrices', null);
+    if (manualPrices && manualPrices.timestamp) {
+        // Once manual prices are entered, ALWAYS use them (never revert to simulated)
+        Store.lastPrices = manualPrices.prices;
+        updateMarketHistory();
+        renderPrices();
+        const updateDate = new Date(manualPrices.timestamp);
+        const hoursSince = Math.floor((Date.now() - manualPrices.timestamp) / (1000 * 60 * 60));
+        const timeAgo = hoursSince < 1 ? 'just now' : hoursSince < 24 ? hoursSince + 'h ago' : Math.floor(hoursSince/24) + 'd ago';
+        document.getElementById('lastUpdated').textContent = 'Last updated: ' + updateDate.toLocaleDateString() + ' ' + updateDate.toLocaleTimeString().slice(0,5) + ' (' + timeAgo + ')';
+        return;
+    }
+
+    try {
+        // SIMULATED DATA - Only used until first manual update is entered
+        // This is for demo/testing purposes only
+        const baseGold = 2785, baseSilver = 31.02, basePlat = 1100, basePal = 1002;
+        const variance = () => (Math.random() - 0.5) * 0.02;
+
+        Store.lastPrices = {
+            gold: Math.round((baseGold * (1 + variance())) * 100) / 100,
+            silver: Math.round((baseSilver * (1 + variance())) * 100) / 100,
+            platinum: Math.round((basePlat * (1 + variance())) * 100) / 100,
+            palladium: Math.round((basePal * (1 + variance())) * 100) / 100
+        };
+
+        updateMarketHistory();
+        renderPrices();
+        document.getElementById('lastUpdated').textContent = 'Demo prices - Click ✏️ to enter real prices';
+
+    } catch(e) {
+        console.log('Market fetch failed, using cached');
+    }
+}
+
+function updateMarketHistory() {
+    // Update today's data point
+    const today = new Date().toISOString().split('T')[0];
+    const existing = Store.marketHistory.find(h => h.date === today);
+    if (existing) {
+        existing.gold = Store.lastPrices.gold * 1.38; // USD to CAD approx
+        existing.silver = Store.lastPrices.silver * 1.38;
+        existing.platinum = Store.lastPrices.platinum * 1.38;
+        existing.ratio = existing.gold / existing.silver;
+    }
+}
+
+function showManualPriceUpdate() {
+    // Pre-fill with current prices
+    const cadRate = 1.38;
+    document.getElementById('manualGoldPrice').value = (Store.lastPrices.gold * cadRate).toFixed(2);
+    document.getElementById('manualSilverPrice').value = (Store.lastPrices.silver * cadRate).toFixed(2);
+    document.getElementById('manualPlatinumPrice').value = (Store.lastPrices.platinum * cadRate).toFixed(2);
+    document.getElementById('manualPalladiumPrice').value = (Store.lastPrices.palladium * cadRate).toFixed(2);
+    showModal('priceUpdateModal');
+}
+
+function saveManualPrices() {
+    const cadRate = 1.38;
+    const gold = parseFloat(document.getElementById('manualGoldPrice').value);
+    const silver = parseFloat(document.getElementById('manualSilverPrice').value);
+    const platinum = parseFloat(document.getElementById('manualPlatinumPrice').value);
+    const palladium = parseFloat(document.getElementById('manualPalladiumPrice').value);
+
+    if (!gold || !silver) return alert('Gold and Silver prices are required');
+
+    // Store in USD for consistency
+    Store.lastPrices = {
+        gold: gold / cadRate,
+        silver: silver / cadRate,
+        platinum: platinum ? platinum / cadRate : Store.lastPrices.platinum,
+        palladium: palladium ? palladium / cadRate : Store.lastPrices.palladium
+    };
+
+    // Save manual update timestamp
+    Store.set('manualPrices', {
+        prices: Store.lastPrices,
+        timestamp: Date.now()
+    });
+
+    updateMarketHistory();
+    renderPrices();
+    closeModal('priceUpdateModal');
+    document.getElementById('lastUpdated').textContent = 'Last updated: ' + new Date().toLocaleTimeString() + ' (manual)';
+    alert('Prices updated successfully!');
+}
+
+// === RENDER FUNCTIONS ===
+function renderAll() {
+    renderPrices();
+    renderDashboard();
+    renderInventory();
+    renderInvestors();
+    renderPOS();
+    renderSellers();
+    renderBuyers();
+    drawCharts();
+}
+
+function renderPrices() {
+    const cadRate = 1.38;
+    const prices = {
+        gold: Store.lastPrices.gold * cadRate,
+        silver: Store.lastPrices.silver * cadRate,
+        platinum: Store.lastPrices.platinum * cadRate,
+        palladium: Store.lastPrices.palladium * cadRate
+    };
+    
+    document.getElementById('goldPrice').textContent = '$' + prices.gold.toFixed(2);
+    document.getElementById('silverPrice').textContent = '$' + prices.silver.toFixed(2);
+    document.getElementById('platinumPrice').textContent = '$' + prices.platinum.toFixed(2);
+    document.getElementById('palladiumPrice').textContent = '$' + prices.palladium.toFixed(2);
+    
+    const ratio = prices.gold / prices.silver;
+    const ratioEl = document.getElementById('gsRatio');
+    ratioEl.textContent = ratio.toFixed(1) + ':1';
+    ratioEl.className = 'ratio-value' + (ratio > 80 ? ' high' : ratio < 50 ? ' low' : '');
+}
+
+function renderDashboard() {
+    // Inventory value
+    const held = Store.inventory.filter(i => i.status === 'held');
+    const invValue = held.reduce((sum, i) => sum + i.buyPrice, 0);
+    document.getElementById('invValue').textContent = '$' + invValue.toLocaleString();
+    
+    // Unrealized P&L
+    const cadRate = 1.38;
+    const currentValue = held.reduce((sum, i) => {
+        const spot = Store.lastPrices[i.metal] * cadRate || 0;
+        const oz = i.unit === 'g' ? i.weight/31.1035 : i.unit === 'kg' ? i.weight*32.1507 : i.weight;
+        return sum + (spot * oz);
+    }, 0);
+    const pnl = currentValue - invValue;
+    const pnlPct = invValue > 0 ? (pnl/invValue)*100 : 0;
+    const pnlEl = document.getElementById('invChange');
+    pnlEl.textContent = (pnl >= 0 ? '+' : '') + '$' + Math.abs(pnl).toFixed(0) + ' (' + (pnlPct >= 0 ? '+' : '') + pnlPct.toFixed(1) + '%)';
+    pnlEl.className = 'metric-change ' + (pnl >= 0 ? 'positive' : 'negative');
+    
+    // Runway
+    const runway = Store.settings.monthlyExpenses > 0 ? Store.settings.cashReserves / Store.settings.monthlyExpenses : 0;
+    document.getElementById('runway').textContent = runway.toFixed(1) + ' mo';
+    document.getElementById('cashReserves').textContent = '$' + Store.settings.cashReserves.toLocaleString() + ' cash';
+    
+    // OPC
+    const opcTotal = Store.investors.reduce((sum, i) => sum + (i.amount || 0), 0);
+    document.getElementById('opcTotal').textContent = '$' + opcTotal.toLocaleString();
+    document.getElementById('investorCount').textContent = Store.investors.length + ' investors';
+    
+    // Realized P&L
+    const sold = Store.inventory.filter(i => i.status === 'sold' && i.sellPrice);
+    const realized = sold.reduce((sum, i) => sum + (i.sellPrice - i.buyPrice), 0);
+    document.getElementById('realizedPnL').textContent = '$' + realized.toLocaleString();
+    
+    // Velocity alerts (3+ days for buying operation - should flip in hours/days not weeks)
+    const alerts = held.filter(i => {
+        const timestamp = i.timestamp || new Date(i.date).getTime();
+        const hours = Math.floor((Date.now() - timestamp) / (1000*60*60));
+        return hours > 72; // Alert if held more than 3 days
+    });
+    const alertDiv = document.getElementById('velocityAlerts');
+    if (alerts.length > 0) {
+        alertDiv.innerHTML = '<div class="alert-card"><div class="alert-header">Velocity Alerts - Flip These Items!</div><p style="font-size:12px;color:#718096;margin-bottom:8px">' + alerts.length + ' items held over 72 hours. You should wholesale these ASAP to avoid price exposure.</p>' +
+            alerts.slice(0, 5).map(a => {
+                const timestamp = a.timestamp || new Date(a.date).getTime();
+                const hours = Math.floor((Date.now() - timestamp) / (1000*60*60));
+                const days = Math.floor(hours / 24);
+                const holdTime = hours < 72 ? hours + ' hours' : days + ' days';
+                return '<div class="alert-item"><span>' + a.serial + ' (' + a.metal + ')</span><span style="color:var(--danger)">' + holdTime + '</span></div>';
+            }).join('') + '</div>';
+    } else {
+        alertDiv.innerHTML = '';
+    }
+    
+    // Metal holdings
+    const metals = { gold: 0, silver: 0, platinum: 0, palladium: 0 };
+    const counts = { gold: 0, silver: 0, platinum: 0, palladium: 0 };
+    held.forEach(i => {
+        const oz = i.unit === 'g' ? i.weight/31.1035 : i.unit === 'kg' ? i.weight*32.1507 : i.weight;
+        metals[i.metal] += oz;
+        counts[i.metal]++;
+    });
+    
+    const metalColors = { gold: '#d4af37', silver: '#c0c0c0', platinum: '#e5e4e2', palladium: '#b5b5b5' };
+    document.getElementById('metalHoldings').innerHTML = Object.entries(metals).map(([m, w]) =>
+        '<div class="price-item"><div class="price-metal"><span class="price-dot" style="background:' + metalColors[m] + '"></span>' + m.charAt(0).toUpperCase() + m.slice(1) + '</div><div class="price-value">' + w.toFixed(2) + ' oz</div><div class="price-change">' + counts[m] + ' items</div></div>'
+    ).join('');
+
+    // CONCENTRATION RISK ALERTS
+    const metalValues = { gold: 0, silver: 0, platinum: 0, palladium: 0 };
+    held.forEach(i => {
+        metalValues[i.metal] += i.buyPrice;
+    });
+
+    let concentrationHTML = '';
+    const totalValue = invValue;
+    Object.entries(metalValues).forEach(([metal, value]) => {
+        if (value > 0) {
+            const pct = (value / totalValue) * 100;
+            if (pct > 50) {
+                concentrationHTML += '<div class="alert-card"><div class="alert-header">HIGH CONCENTRATION RISK</div><p style="font-size:12px;line-height:1.5"><strong>' + metal.toUpperCase() + '</strong> represents ' + pct.toFixed(1) + '% of your inventory ($' + value.toLocaleString() + '). <br>You have $' + value.toLocaleString() + ' exposed to ' + metal + ' price movements.<br><strong>Recommendation:</strong> Reduce ' + metal + ' exposure to below 40% of portfolio. A 10% price drop in ' + metal + ' would cost you $' + (value * 0.10).toFixed(0) + '.</p></div>';
+            } else if (pct > 40) {
+                concentrationHTML += '<div class="alert-card" style="background: rgba(245,158,11,0.05); border-color: rgba(245,158,11,0.3);"><div class="alert-header" style="color: var(--warning);">Concentration Warning</div><p style="font-size:12px;line-height:1.5"><strong>' + metal.toUpperCase() + '</strong> is ' + pct.toFixed(1) + '% of inventory ($' + value.toLocaleString() + '). Consider rebalancing before reaching 50%.</p></div>';
+            }
+        }
+    });
+    document.getElementById('concentrationAlerts').innerHTML = concentrationHTML;
+
+    // METAL MIX BREAKDOWN
+    let mixHTML = '';
+    Object.entries(metalValues).sort((a, b) => b[1] - a[1]).forEach(([metal, value]) => {
+        if (value > 0) {
+            const pct = (value / totalValue) * 100;
+            const oz = metals[metal];
+            const currentSpot = Store.lastPrices[metal] * cadRate;
+            const currentValue = oz * currentSpot;
+            const plDollar = currentValue - value;
+            const plPct = (plDollar / value) * 100;
+
+            mixHTML += '<div style="padding:12px;border-bottom:1px solid var(--border)"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><div style="font-weight:600">' + metal.toUpperCase() + '</div><div style="font-weight:700;color:' + (plDollar >= 0 ? 'var(--success)' : 'var(--danger)') + '">' + (plDollar >= 0 ? '+' : '') + plPct.toFixed(1) + '%</div></div><div style="display:flex;justify-content:space-between;font-size:12px;color:#718096;margin-bottom:4px"><span>' + oz.toFixed(2) + ' oz × $' + currentSpot.toFixed(2) + '</span><span>Cost: $' + value.toLocaleString() + '</span></div><div style="background:var(--muted);height:8px;border-radius:4px;overflow:hidden;margin-bottom:4px"><div style="width:' + pct.toFixed(1) + '%;height:100%;background:' + metalColors[metal] + '"></div></div><div style="font-size:11px;color:#718096">' + pct.toFixed(1) + '% of portfolio · Current value: $' + currentValue.toFixed(0) + ' · ' + (plDollar >= 0 ? 'Gain' : 'Loss') + ': $' + Math.abs(plDollar).toFixed(0) + '</div></div>';
+        }
+    });
+    document.getElementById('metalMixBreakdown').innerHTML = mixHTML || '<p style="padding:12px;color:#718096">No inventory data</p>';
+
+    // UNREALIZED P&L BY METAL
+    let plHTML = '';
+    Object.entries(metalValues).sort((a, b) => {
+        const plA = (metals[a[0]] * Store.lastPrices[a[0]] * cadRate) - a[1];
+        const plB = (metals[b[0]] * Store.lastPrices[b[0]] * cadRate) - b[1];
+        return plA - plB; // Sort by worst loss first
+    }).forEach(([metal, cost]) => {
+        if (cost > 0) {
+            const oz = metals[metal];
+            const currentSpot = Store.lastPrices[metal] * cadRate;
+            const currentValue = oz * currentSpot;
+            const plDollar = currentValue - cost;
+            const plPct = (plDollar / cost) * 100;
+
+            plHTML += '<div style="padding:12px;border-bottom:1px solid var(--border);background:' + (plDollar < 0 ? 'rgba(239,68,68,0.05)' : 'rgba(16,185,129,0.05)') + '"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><div><span style="font-weight:600">' + metal.toUpperCase() + '</span> <span style="font-size:12px;color:#718096">(' + oz.toFixed(2) + ' oz)</span></div><div style="font-weight:700;font-size:16px;color:' + (plDollar >= 0 ? 'var(--success)' : 'var(--danger)') + '">' + (plDollar >= 0 ? '+' : '') + '$' + Math.abs(plDollar).toFixed(0) + '</div></div><div style="font-size:12px;color:#718096">Cost: $' + cost.toLocaleString() + ' → Current: $' + currentValue.toFixed(0) + ' (' + (plDollar >= 0 ? '+' : '') + plPct.toFixed(1) + '%)</div></div>';
+        }
+    });
+    document.getElementById('unrealizedPL').innerHTML = plHTML || '<p style="padding:12px;color:#718096">No inventory data</p>';
+
+    // PERFORMANCE BREAKDOWN (Summary)
+    const profitable = held.filter(i => {
+        const spot = Store.lastPrices[i.metal] * cadRate;
+        const oz = i.unit === 'g' ? i.weight/31.1035 : i.unit === 'kg' ? i.weight*32.1507 : i.weight;
+        const currentValue = spot * oz;
+        return currentValue >= i.buyPrice;
+    });
+    const underwater = held.filter(i => {
+        const spot = Store.lastPrices[i.metal] * cadRate;
+        const oz = i.unit === 'g' ? i.weight/31.1035 : i.unit === 'kg' ? i.weight*32.1507 : i.weight;
+        const currentValue = spot * oz;
+        return currentValue < i.buyPrice;
+    });
+
+    document.getElementById('performanceBreakdown').innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><div style="padding:12px;background:rgba(16,185,129,0.1);border-radius:8px;text-align:center"><div style="font-size:24px;font-weight:700;color:var(--success)">' + profitable.length + '</div><div style="font-size:12px;color:#718096">Profitable</div></div><div style="padding:12px;background:rgba(239,68,68,0.1);border-radius:8px;text-align:center"><div style="font-size:24px;font-weight:700;color:var(--danger)">' + underwater.length + '</div><div style="font-size:12px;color:#718096">Underwater</div></div></div>';
+
+    // SPREAD ANALYSIS (Last 30 days of sold items)
+    const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+    const recentSales = sold.filter(i => {
+        const sellTimestamp = new Date(i.sellDate).getTime();
+        return sellTimestamp >= thirtyDaysAgo && i.spread !== undefined;
+    });
+
+    if (recentSales.length > 0) {
+        // Group by metal and purity
+        const spreadByPurity = {};
+        recentSales.forEach(item => {
+            const key = item.metal + '_' + (item.purity || 'unknown');
+            if (!spreadByPurity[key]) {
+                spreadByPurity[key] = {
+                    metal: item.metal,
+                    purity: item.purity || 'unknown',
+                    count: 0,
+                    totalSpread: 0,
+                    avgSpread: 0,
+                    avgSpreadPct: 0
+                };
+            }
+            spreadByPurity[key].count++;
+            spreadByPurity[key].totalSpread += item.spread;
+        });
+
+        // Calculate averages
+        Object.values(spreadByPurity).forEach(s => {
+            s.avgSpread = s.totalSpread / s.count;
+            s.avgSpreadPct = s.avgSpread; // Simplified - should calculate from buy/sell prices
+        });
+
+        // Sort by avg spread (best first)
+        const sorted = Object.values(spreadByPurity).sort((a, b) => b.avgSpread - a.avgSpread);
+
+        let spreadHTML = '';
+        sorted.slice(0, 5).forEach(s => {
+            const isPositive = s.avgSpread >= 0;
+            spreadHTML += '<div style="padding:12px;border-bottom:1px solid var(--border);background:' + (isPositive ? 'rgba(16,185,129,0.05)' : 'rgba(239,68,68,0.05)') + '"><div style="display:flex;justify-content:space-between;margin-bottom:4px"><div><span style="font-weight:600">' + s.metal.toUpperCase() + '</span> <span style="font-size:12px;color:#718096">' + s.purity + '</span></div><div style="font-weight:700;color:' + (isPositive ? 'var(--success)' : 'var(--danger)') + '">' + (isPositive ? '+' : '') + '$' + s.avgSpread.toFixed(2) + '</div></div><div style="font-size:11px;color:#718096">' + s.count + ' flip' + (s.count > 1 ? 's' : '') + ' · Avg spread per oz</div></div>';
+        });
+
+        document.getElementById('spreadAnalysis').innerHTML = spreadHTML + '<div style="padding:12px;text-align:center;font-size:11px;color:#718096">Based on ' + recentSales.length + ' sales in last 30 days</div>';
+    } else {
+        document.getElementById('spreadAnalysis').innerHTML = '<p style="padding:12px;color:#718096">No sales data yet. Complete some wholesale flips to see spread analysis.</p>';
+    }
+}
+
+function renderInventory() {
+    const t1 = Store.inventory.filter(i => i.tier === 1 && i.status === 'held').length;
+    const t2 = Store.inventory.filter(i => i.tier === 2 && i.status === 'held').length;
+    const t3 = Store.inventory.filter(i => i.tier === 3 && i.status === 'held').length;
+    document.getElementById('tier1Count').textContent = t1;
+    document.getElementById('tier2Count').textContent = t2;
+    document.getElementById('tier3Count').textContent = t3;
+    
+    const search = document.getElementById('inventorySearch').value.toLowerCase();
+    const filtered = Store.inventory.filter(i => 
+        i.serial.toLowerCase().includes(search) || 
+        i.desc.toLowerCase().includes(search) ||
+        i.metal.includes(search)
+    );
+    
+    const icons = { gold: 'Au', silver: 'Ag', platinum: 'Pt', palladium: 'Pd' };
+
+    document.getElementById('inventoryList').innerHTML = filtered.length === 0 ?
+        '<div class="empty-state"><div class="empty-icon" style="font-size:36px;font-weight:700;color:var(--border)">No Items</div><p class="empty-text">No inventory items</p><button class="btn btn-gold" onclick="showAddItemModal()">Add First Item</button></div>' :
+        filtered.map(i => {
+            const timestamp = i.timestamp || new Date(i.date).getTime();
+            const hours = Math.floor((Date.now() - timestamp) / (1000*60*60));
+            const days = Math.floor(hours / 24);
+            const holdTime = hours < 72 ? hours + 'h' : days + 'd';
+            const holdWarning = (hours > 72 && days < 45) || days >= 45;
+            return '<div class="inventory-item"><div class="item-header"><div class="item-icon ' + i.metal + '" style="font-weight:700">' + icons[i.metal] + '</div><div class="item-info"><div class="item-serial">' + i.serial + '</div><div class="item-desc">' + i.desc + '</div><div class="item-badges"><span class="badge-small tier' + i.tier + '">Tier ' + i.tier + '</span><span class="badge-small">' + i.status + '</span>' + (holdWarning ? '<span class="badge-small danger">' + holdTime + '</span>' : '<span class="badge-small">' + holdTime + '</span>') + '</div></div><div style="text-align:right"><div style="font-weight:700">$' + i.buyPrice.toLocaleString() + '</div><div style="font-size:11px;color:#718096">' + i.weight + ' ' + i.unit + '</div></div></div><div class="item-actions"><button class="item-btn" onclick="viewItem(\'' + i.id + '\')">View</button><button class="item-btn" onclick="sellItem(\'' + i.id + '\')">Sell</button><button class="item-btn" style="color:var(--danger)" onclick="deleteItem(\'' + i.id + '\')">Delete</button></div></div>';
+        }).join('');
+}
+
+function renderInvestors() {
+    const total = Store.investors.reduce((sum, i) => sum + (i.amount || 0), 0);
+    document.getElementById('investorOpcTotal').textContent = '$' + total.toLocaleString();
+
+    let warningsHTML = '';
+
+    // Capacity Management Warning
+    const activePartnerships = Store.investors.length;
+    const hoursPerWeek = 20; // Sustainable capacity
+    const hoursPerPartnership = 1; // Monthly ongoing maintenance
+    const capacityUsed = (activePartnerships * hoursPerPartnership * 4) / hoursPerWeek;
+
+    if (activePartnerships >= 12) {
+        warningsHTML += '<div class="alert-card"><div class="alert-header">Capacity Ceiling Reached</div><p style="font-size:12px;line-height:1.5">You have ' + activePartnerships + ' active partnerships (12-15 is maximum sustainable).<br><strong>Consider:</strong> 1) Hire part-time admin assistant, or 2) Cap new partnerships until exits create capacity.</p></div>';
+    } else if (activePartnerships >= 10) {
+        warningsHTML += '<div class="alert-card" style="background: rgba(245,158,11,0.05); border-color: rgba(245,158,11,0.3);"><div class="alert-header" style="color: var(--warning);">Approaching Capacity Limit</div><p style="font-size:12px;line-height:1.5">' + activePartnerships + ' partnerships active. You can sustain 12-15 maximum.<br><strong>Plan ahead:</strong> hire assistant at 12+ or prepare to cap new deals.</p></div>';
+    }
+
+    // Concentration warning
+    const max = Store.investors.length > 0 ? Math.max(...Store.investors.map(i => (i.amount/total)*100)) : 0;
+    if (max > 40 && Store.investors.length > 0) {
+        const maxInv = Store.investors.find(i => (i.amount/total)*100 === max);
+        warningsHTML += '<div class="alert-card"><div class="alert-header">Concentration Risk</div><p style="font-size:12px">' + maxInv.name + ' represents ' + max.toFixed(1) + '% of OPC. Consider diversifying investor base.</p></div>';
+    }
+
+    document.getElementById('concentrationWarning').innerHTML = warningsHTML;
+    
+    // Upcoming maturities
+    const upcoming = Store.investors.filter(i => i.endDate && new Date(i.endDate) <= new Date(Date.now() + 60*24*60*60*1000));
+    const matDiv = document.getElementById('upcomingMaturities');
+    if (upcoming.length > 0) {
+        matDiv.innerHTML = '<div class="card"><div class="card-title" style="margin-bottom:8px">Upcoming Maturities (60 days)</div>' + upcoming.map(i => {
+            const days = Math.floor((new Date(i.endDate) - Date.now()) / (1000*60*60*24));
+            return '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span>' + i.name + '</span><span class="badge-small ' + (days < 14 ? 'danger' : '') + '">' + days + ' days</span></div>';
+        }).join('') + '</div>';
+    } else {
+        matDiv.innerHTML = '';
+    }
+    
+    // Investor list
+    document.getElementById('investorList').innerHTML = Store.investors.length === 0 ?
+        '<div class="empty-state"><div class="empty-icon" style="font-size:36px;font-weight:700;color:var(--border)">No Investors</div><p class="empty-text">No investors yet</p><button class="btn btn-navy" onclick="showAddInvestorModal()">Add First Investor</button></div>' :
+        Store.investors.map(i => '<div class="inventory-item"><div class="item-header"><div class="item-icon" style="background:var(--navy);color:white;font-weight:700">' + i.name.charAt(0) + '</div><div class="item-info"><div class="item-serial">' + i.name + '</div><div class="item-desc">' + i.email + '</div><div class="item-badges"><span class="badge-small ' + (i.type === 'lds' ? 'tier1' : '') + '">' + (i.type === 'lds' ? 'LDS' : 'Secular') + '</span></div></div><div style="text-align:right"><div style="font-weight:700">$' + (i.amount || 0).toLocaleString() + '</div><div style="font-size:11px;color:#718096">invested</div></div></div></div>').join('');
+}
+
+function renderPOS() {
+    const held = Store.inventory.filter(i => i.status === 'held');
+    document.getElementById('posItemList').innerHTML = held.length === 0 ?
+        '<p style="color:#718096;text-align:center;padding:16px">No items available</p>' :
+        held.map(i => '<div class="checkbox-item"><input type="checkbox" value="' + i.id + '" id="pos_' + i.id + '"><label for="pos_' + i.id + '" style="flex:1">' + i.serial + ' - $' + i.buyPrice.toLocaleString() + '</label></div>').join('');
+}
+
+function renderSellers() {
+    const sellers = Store.sellers || [];
+    const totalSellers = sellers.length;
+    const returnSellers = sellers.filter(s => s.visits && s.visits > 1).length;
+    const totalSpent = sellers.reduce((sum, s) => sum + (s.totalSpent || 0), 0);
+
+    document.getElementById('sellerStats').innerHTML = totalSellers === 0 ? '' : `
+        <div class="card" style="margin-bottom:12px">
+            <div class="metrics-grid">
+                <div class="metric-card"><div class="metric-label">Total Sellers</div><div class="metric-value">${totalSellers}</div></div>
+                <div class="metric-card success"><div class="metric-label">Return Sellers</div><div class="metric-value">${returnSellers}</div><div class="metric-change">${totalSellers > 0 ? ((returnSellers/totalSellers)*100).toFixed(0) : 0}%</div></div>
+                <div class="metric-card navy"><div class="metric-label">Total Purchased</div><div class="metric-value">$${totalSpent.toLocaleString()}</div></div>
+                <div class="metric-card silver"><div class="metric-label">Avg per Seller</div><div class="metric-value">$${totalSellers > 0 ? (totalSpent/totalSellers).toFixed(0) : 0}</div></div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('sellerList').innerHTML = sellers.length === 0 ?
+        '<div class="empty-state"><div class="empty-text">No sellers yet. Add your first seller to start tracking!</div></div>' :
+        sellers.sort((a, b) => (b.totalSpent || 0) - (a.totalSpent || 0)).map(s => `
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+                    <div><strong>${s.name}</strong><br><span style="font-size:12px;color:#718096">${s.email || ''}</span></div>
+                    <div style="text-align:right"><div style="font-size:16px;font-weight:700">$${(s.totalSpent || 0).toLocaleString()}</div><div style="font-size:11px;color:#718096">${s.visits || 1} visit${(s.visits || 1) > 1 ? 's' : ''}</div></div>
+                </div>
+                <div style="font-size:12px;color:#718096">Source: ${s.source || 'Unknown'} | Added: ${s.dateAdded || 'N/A'}</div>
+                ${s.notes ? '<div style="font-size:12px;margin-top:8px;padding:8px;background:var(--muted);border-radius:6px">' + s.notes + '</div>' : ''}
+            </div>
+        `).join('');
+}
+
+function renderBuyers() {
+    const buyers = Store.wholesaleBuyers || [];
+    const refineries = buyers.filter(b => b.type === 'refinery').length;
+    const businesses = buyers.filter(b => b.type === 'business').length;
+
+    document.getElementById('buyerStats').innerHTML = buyers.length === 0 ? '' : `
+        <div class="card" style="margin-bottom:12px">
+            <div class="metrics-grid">
+                <div class="metric-card"><div class="metric-label">Total Buyers</div><div class="metric-value">${buyers.length}</div></div>
+                <div class="metric-card navy"><div class="metric-label">Refineries</div><div class="metric-value">${refineries}</div><div class="metric-change">95.5% spot</div></div>
+                <div class="metric-card success"><div class="metric-label">Businesses</div><div class="metric-value">${businesses}</div><div class="metric-change">100-115% spot</div></div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('buyerList').innerHTML = buyers.length === 0 ?
+        '<div class="empty-state"><div class="empty-text">No wholesale buyers yet. Add refineries and businesses you sell to!</div></div>' :
+        buyers.map(b => `
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+                    <div><strong>${b.name}</strong><br><span style="font-size:12px;color:#718096">${b.type === 'refinery' ? 'Refinery (95.5% spot)' : b.type === 'business' ? 'Business (100-115% spot)' : 'Other'}</span></div>
+                    <div style="text-align:right"><div style="font-size:12px;font-weight:600">${b.contact || ''}</div><div style="font-size:11px;color:#718096">${b.phone || ''}</div></div>
+                </div>
+                <div style="font-size:12px;color:#718096">Payment: ${b.paymentTerms || 'Not specified'} | Email: ${b.email || 'N/A'}</div>
+                ${b.notes ? '<div style="font-size:12px;margin-top:8px;padding:8px;background:var(--muted);border-radius:6px">' + b.notes + '</div>' : ''}
+            </div>
+        `).join('');
+}
+
+function updateInvestorSelect() {
+    const sel = document.getElementById('itemInvestor');
+    sel.innerHTML = Store.investors.map(i => '<option value="' + i.id + '">' + i.name + '</option>').join('');
+}
+
+// === ACTIONS ===
+function showSection(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    event.target.classList.add('active');
+    renderAll();
+}
+
+function showModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+function showAddItemModal() { showModal('addItemModal'); updateInvestorSelect(); updatePurityOptions(); }
+function showAddInvestorModal() { 
+    showModal('addInvestorModal'); 
+    const d = new Date();
+    d.setFullYear(d.getFullYear() + 1);
+    document.getElementById('invEndDate').value = d.toISOString().split('T')[0];
+}
+function showSettings() { showModal('settingsModal'); }
+function showAddSellerModal() { showModal('addSellerModal'); }
+function showAddBuyerModal() { showModal('addBuyerModal'); }
+
+function addSeller() {
+    const seller = {
+        id: generateId(),
+        name: document.getElementById('sellerName').value,
+        email: document.getElementById('sellerEmail').value,
+        phone: document.getElementById('sellerPhone').value,
+        source: document.getElementById('sellerSource').value,
+        notes: document.getElementById('sellerNotes').value,
+        dateAdded: new Date().toISOString().split('T')[0],
+        visits: 1,
+        totalSpent: 0
+    };
+    if (!seller.name) return alert('Name is required');
+
+    // Check if seller already exists (by email or phone)
+    const existing = Store.sellers.find(s =>
+        (s.email && s.email === seller.email) ||
+        (s.phone && s.phone === seller.phone)
+    );
+    if (existing) {
+        if (confirm('This seller already exists. Update their information?')) {
+            Object.assign(existing, seller);
+            existing.visits = (existing.visits || 0) + 1;
+        }
+    } else {
+        Store.sellers.push(seller);
+    }
+
+    Store.set('sellers', Store.sellers);
+    closeModal('addSellerModal');
+    renderAll();
+
+    // Clear form
+    document.getElementById('sellerName').value = '';
+    document.getElementById('sellerEmail').value = '';
+    document.getElementById('sellerPhone').value = '';
+    document.getElementById('sellerNotes').value = '';
+}
+
+function addBuyer() {
+    const buyer = {
+        id: generateId(),
+        name: document.getElementById('buyerName').value,
+        type: document.getElementById('buyerType').value,
+        contact: document.getElementById('buyerContact').value,
+        email: document.getElementById('buyerEmail').value,
+        phone: document.getElementById('buyerPhone').value,
+        paymentTerms: document.getElementById('buyerTerms').value,
+        notes: document.getElementById('buyerNotes').value,
+        dateAdded: new Date().toISOString().split('T')[0]
+    };
+    if (!buyer.name) return alert('Business name is required');
+    Store.wholesaleBuyers.push(buyer);
+    Store.set('wholesaleBuyers', Store.wholesaleBuyers);
+    closeModal('addBuyerModal');
+    renderAll();
+
+    // Clear form
+    document.getElementById('buyerName').value = '';
+    document.getElementById('buyerContact').value = '';
+    document.getElementById('buyerEmail').value = '';
+    document.getElementById('buyerPhone').value = '';
+    document.getElementById('buyerTerms').value = '';
+    document.getElementById('buyerNotes').value = '';
+}
+
+function addItem() {
+    const item = {
+        id: generateId(),
+        serial: document.getElementById('itemSerial').value,
+        desc: document.getElementById('itemDesc').value,
+        metal: document.getElementById('itemMetal').value,
+        tier: parseInt(document.getElementById('itemTier').value),
+        weight: parseFloat(document.getElementById('itemWeight').value) || 0,
+        unit: document.getElementById('itemUnit').value,
+        purity: document.getElementById('itemPurity').value,
+        buyPrice: parseFloat(document.getElementById('itemPrice').value) || 0,
+        investorId: document.getElementById('itemInvestor').value,
+        refinery: document.getElementById('itemRefinery').value,
+        notes: document.getElementById('itemNotes').value,
+        status: 'held',
+        date: new Date().toISOString().split('T')[0],
+        timestamp: Date.now(), // Add timestamp for hour-level tracking
+        daysHeld: 0
+    };
+    if (!item.serial || !item.buyPrice) return alert('Serial and price required');
+    Store.inventory.push(item);
+    Store.set('inventory', Store.inventory);
+    closeModal('addItemModal');
+    renderAll();
+    // Clear form
+    document.getElementById('itemSerial').value = '';
+    document.getElementById('itemDesc').value = '';
+    document.getElementById('itemWeight').value = '';
+    document.getElementById('itemPurity').value = '';
+    document.getElementById('itemPrice').value = '';
+}
+
+function addInvestor() {
+    const inv = {
+        id: generateId(),
+        name: document.getElementById('invName').value,
+        email: document.getElementById('invEmail').value,
+        phone: document.getElementById('invPhone').value,
+        type: document.getElementById('invType').value,
+        amount: parseFloat(document.getElementById('invAmount').value) || 0,
+        endDate: document.getElementById('invEndDate').value,
+        notes: document.getElementById('invNotes').value
+    };
+    if (!inv.name || !inv.email) return alert('Name and email required');
+    Store.investors.push(inv);
+    Store.set('investors', Store.investors);
+    closeModal('addInvestorModal');
+    renderAll();
+}
+
+function deleteItem(id) {
+    if (!confirm('Delete this item?')) return;
+    Store.inventory = Store.inventory.filter(i => i.id !== id);
+    Store.set('inventory', Store.inventory);
+    renderAll();
+}
+
+function sellItem(id) {
+    const item = Store.inventory.find(i => i.id === id);
+    if (!item) return;
+    const price = prompt('Enter sell price (CAD):', Math.round(item.buyPrice * 1.1));
+    if (!price) return;
+    item.sellPrice = parseFloat(price);
+    item.sellDate = new Date().toISOString().split('T')[0];
+    item.status = 'sold';
+    Store.set('inventory', Store.inventory);
+    renderAll();
+}
+
+function viewItem(id) {
+    const item = Store.inventory.find(i => i.id === id);
+    if (!item) return;
+    alert('Serial: ' + item.serial + '\nDesc: ' + item.desc + '\nMetal: ' + item.metal + '\nWeight: ' + item.weight + ' ' + item.unit + '\nBuy: $' + item.buyPrice + '\nNotes: ' + (item.notes || 'None'));
+}
+
+function filterInventory() { renderInventory(); }
+
+// === MARKET INSIGHTS (Rule-Based Analysis) ===
+function showMarketInsight(type) {
+    let title, analysis, recommendation;
+
+    // Use CAD rate to get actual CAD prices
+    const cadRate = 1.38;
+    const currentGoldCAD = Store.lastPrices.gold * cadRate;
+    const currentSilverCAD = Store.lastPrices.silver * cadRate;
+    const currentPlatinumCAD = Store.lastPrices.platinum * cadRate;
+    const ratio = currentGoldCAD / currentSilverCAD;
+
+    // Check if using manual prices (more reliable) or simulated
+    const manualPrices = Store.get('manualPrices', null);
+    const usingManualData = manualPrices && manualPrices.timestamp;
+
+    if (type === 'market') {
+        title = 'Current Market Conditions';
+
+        if (!usingManualData) {
+            analysis = 'You are using simulated demo prices. Update with real market prices for accurate analysis.';
+            recommendation = 'Click the pencil icon next to spot prices and enter current CAD prices from kitco.com or bulliondeals.com.';
+        } else {
+            const hoursSinceUpdate = Math.floor((Date.now() - manualPrices.timestamp) / (1000 * 60 * 60));
+            const daysSince = Math.floor(hoursSinceUpdate / 24);
+
+            analysis = 'Based on your manually updated prices (' + (daysSince === 0 ? 'today' : daysSince + ' days ago') + '): ' +
+                'Gold at $' + currentGoldCAD.toFixed(2) + ' CAD/oz, Silver at $' + currentSilverCAD.toFixed(2) + ' CAD/oz. ' +
+                'Gold/Silver ratio is ' + ratio.toFixed(1) + ':1. ';
+
+            if (ratio > 85) {
+                analysis += 'This ratio is historically high, suggesting silver is undervalued relative to gold.';
+                recommendation = 'Consider increasing silver allocation if your inventory is gold-heavy. Historical mean is around 65:1.';
+            } else if (ratio < 60) {
+                analysis += 'This ratio is below historical average, suggesting silver is relatively expensive.';
+                recommendation = 'Gold may offer better value. Monitor ratio for changes.';
+            } else {
+                analysis += 'This ratio is near historical norms (65-75:1).';
+                recommendation = 'Maintain balanced allocation between gold and silver based on customer demand.';
+            }
+
+            if (daysSince > 7) {
+                recommendation += ' NOTE: Your prices are ' + daysSince + ' days old. Consider updating for current market conditions.';
+            }
+        }
+
+    } else if (type === 'inventory') {
+        const held = Store.inventory.filter(i => i.status === 'held');
+        const cost = held.reduce((s, i) => s + i.buyPrice, 0);
+        const avgDays = held.length > 0 ? held.reduce((s, i) => s + i.daysHeld, 0) / held.length : 0;
+
+        title = 'Portfolio Analysis';
+
+        if (held.length === 0) {
+            analysis = 'Your inventory is currently empty.';
+            recommendation = 'Review market conditions and add inventory when prices are favorable.';
+        } else {
+            // Calculate current value based on spot prices
+            const currentValue = held.reduce((sum, i) => {
+                const spot = Store.lastPrices[i.metal] * cadRate || 0;
+                const oz = i.unit === 'g' ? i.weight/31.1035 : i.unit === 'kg' ? i.weight*32.1507 : i.weight;
+                return sum + (spot * oz);
+            }, 0);
+            const unrealizedPL = currentValue - cost;
+            const plPercent = cost > 0 ? (unrealizedPL / cost * 100) : 0;
+
+            analysis = 'You hold ' + held.length + ' items with total cost basis of $' + cost.toLocaleString() + '. ' +
+                'Current market value: $' + currentValue.toLocaleString() + ' (' + (plPercent >= 0 ? '+' : '') + plPercent.toFixed(1) + '%). ' +
+                'Average hold time: ' + avgDays.toFixed(0) + ' days.';
+
+            if (avgDays > 45) {
+                recommendation = 'Items held over 45 days tie up capital. Consider: 1) Selling to refinery at spot, or 2) Offering customer discounts to move inventory faster.';
+            } else if (avgDays < 15) {
+                recommendation = 'Good inventory velocity. Items are moving quickly, which is healthy for cash flow.';
+            } else {
+                recommendation = 'Inventory turnover is within normal range. Continue monitoring for items approaching 45 days.';
+            }
+        }
+
+    } else if (type === 'investors') {
+        const total = Store.investors.reduce((s, i) => s + (i.amount || 0), 0);
+        const opcRatio = total > 0 ? (total / (total + Store.settings.personalCapital) * 100) : 0;
+
+        title = 'Investor Capital Analysis';
+
+        if (Store.investors.length === 0) {
+            analysis = 'No investor capital currently deployed.';
+            recommendation = 'Operating on personal capital only. Consider investor partnerships to scale operations.';
+        } else {
+            analysis = 'Capital structure: ' + opcRatio.toFixed(1) + '% investor capital (OPC), ' + (100-opcRatio).toFixed(1) + '% personal capital. ' +
+                'Total investor capital: $' + total.toLocaleString() + ' from ' + Store.investors.length + ' investors.';
+
+            if (opcRatio > 70) {
+                recommendation = 'High investor capital ratio increases fiduciary responsibility and limits flexibility. Target: 50-70% OPC for balanced operations.';
+            } else if (opcRatio < 30 && Store.investors.length > 0) {
+                recommendation = 'Low utilization of investor capital. Growth potential available if you can manage more partnerships.';
+            } else {
+                recommendation = 'Balanced capital structure supports sustainable growth while maintaining operational flexibility.';
+            }
+        }
+
+    } else if (type === 'buy') {
+        title = 'Buy Recommendation';
+
+        if (!usingManualData) {
+            analysis = 'Analysis requires real market price data.';
+            recommendation = 'Update spot prices manually to get buy recommendations based on current market conditions.';
+        } else {
+            analysis = 'Current prices: Gold $' + currentGoldCAD.toFixed(2) + ', Silver $' + currentSilverCAD.toFixed(2) + ', Platinum $' + currentPlatinumCAD.toFixed(2) + ' CAD/oz. ' +
+                'Gold/Silver ratio: ' + ratio.toFixed(1) + ':1.';
+
+            if (ratio > 85) {
+                recommendation = 'Silver appears undervalued. Consider buying silver products if customer demand supports it. Calculate your margin: (sell price - buy price - overhead) / buy price should exceed 15% for Tier 1 inventory.';
+            } else if (ratio < 60) {
+                recommendation = 'Gold offers better relative value. Focus on gold inventory if margins support it. Always verify current spot before committing capital.';
+            } else {
+                recommendation = 'Balanced market. Buy based on customer demand and available margins. Target 15%+ margin for Tier 1, 8-12% for Tier 2 (OPC) inventory.';
+            }
+        }
+    }
+
+    document.getElementById('insightContent').innerHTML =
+        '<div class="insight-card">' +
+        '<div class="insight-header"><span class="insight-title">' + title + '</span></div>' +
+        '<p class="insight-text" style="margin:12px 0">' + analysis + '</p>' +
+        '<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">' +
+        '<p style="font-size:12px;font-weight:600;margin-bottom:8px">Recommendation:</p>' +
+        '<p class="insight-text">' + recommendation + '</p>' +
+        '</div>' +
+        (usingManualData ? '' : '<div style="margin-top:16px;padding:10px;background:rgba(245,158,11,0.1);border-radius:8px;font-size:11px;color:#92400e">Note: This analysis is based on ' + (usingManualData ? 'your manual price updates' : 'simulated demo data') + '. For accurate recommendations, update with real market prices.</div>') +
+        '</div>';
+
+    showModal('insightModal');
+}
+
+// === CHARTS (Canvas) ===
+function drawCharts() {
+    drawPriceChart();
+    drawRatioChart();
+}
+
+function drawPriceChart() {
+    const canvas = document.getElementById('priceChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+    
+    const w = rect.width, h = rect.height;
+    const padding = 40;
+    const chartW = w - padding * 2;
+    const chartH = h - padding * 2;
+    
+    ctx.clearRect(0, 0, w, h);
+    
+    // Grid
+    ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--border');
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+        const y = padding + (chartH / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(padding, y);
+        ctx.lineTo(w - padding, y);
+        ctx.stroke();
+    }
+    
+    const data = Store.marketHistory;
+    const maxGold = Math.max(...data.map(d => d.gold)) * 1.05;
+    const minGold = Math.min(...data.map(d => d.gold)) * 0.95;
+    
+    // Gold line
+    ctx.strokeStyle = '#d4af37';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    data.forEach((d, i) => {
+        const x = padding + (i / (data.length - 1)) * chartW;
+        const y = padding + chartH - ((d.gold - minGold) / (maxGold - minGold)) * chartH;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    
+    // Silver line (scaled)
+    const maxSilver = Math.max(...data.map(d => d.silver)) * 1.05;
+    const minSilver = Math.min(...data.map(d => d.silver)) * 0.95;
+    ctx.strokeStyle = '#c0c0c0';
+    ctx.beginPath();
+    data.forEach((d, i) => {
+        const x = padding + (i / (data.length - 1)) * chartW;
+        const y = padding + chartH - ((d.silver - minSilver) / (maxSilver - minSilver)) * chartH;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    
+    // Labels
+    ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--fg');
+    ctx.font = '11px sans-serif';
+    ctx.fillText('Gold', padding + 5, padding + 15);
+    ctx.fillStyle = '#c0c0c0';
+    ctx.fillText('Silver', padding + 45, padding + 15);
+}
+
+function drawRatioChart() {
+    const canvas = document.getElementById('ratioChart');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.scale(dpr, dpr);
+    
+    const w = rect.width, h = rect.height;
+    const padding = 40;
+    const chartW = w - padding * 2;
+    const chartH = h - padding * 2;
+    
+    ctx.clearRect(0, 0, w, h);
+    
+    // Reference lines
+    ctx.strokeStyle = 'rgba(16,185,129,0.5)';
+    ctx.setLineDash([5, 5]);
+    const y80 = padding + chartH - ((80 - 40) / 60) * chartH;
+    ctx.beginPath();
+    ctx.moveTo(padding, y80);
+    ctx.lineTo(w - padding, y80);
+    ctx.stroke();
+    
+    ctx.strokeStyle = 'rgba(239,68,68,0.5)';
+    const y50 = padding + chartH - ((50 - 40) / 60) * chartH;
+    ctx.beginPath();
+    ctx.moveTo(padding, y50);
+    ctx.lineTo(w - padding, y50);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    
+    // Ratio area
+    const data = Store.marketHistory;
+    ctx.fillStyle = 'rgba(26,35,126,0.2)';
+    ctx.strokeStyle = '#1a237e';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    data.forEach((d, i) => {
+        const x = padding + (i / (data.length - 1)) * chartW;
+        const y = padding + chartH - ((d.ratio - 40) / 60) * chartH;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+    
+    // Fill
+    ctx.lineTo(w - padding, h - padding);
+    ctx.lineTo(padding, h - padding);
+    ctx.closePath();
+    ctx.fill();
+}
+
+// === SETTINGS & DATA ===
+function toggleDarkMode() {
+    document.body.classList.toggle('dark');
+    Store.settings.darkMode = document.body.classList.contains('dark');
+    Store.set('settings', Store.settings);
+    document.getElementById('darkModeToggle').classList.toggle('active', Store.settings.darkMode);
+    drawCharts();
+}
+
+function saveSettings() {
+    Store.settings.cashReserves = parseFloat(document.getElementById('settingCash').value) || 50000;
+    Store.settings.monthlyExpenses = parseFloat(document.getElementById('settingExpenses').value) || 8000;
+    Store.settings.personalCapital = parseFloat(document.getElementById('settingPersonal').value) || 25000;
+    Store.set('settings', Store.settings);
+    closeModal('settingsModal');
+    renderAll();
+}
+
+function exportData() {
+    const data = {
+        inventory: Store.inventory,
+        investors: Store.investors,
+        sellers: Store.sellers || [],
+        wholesaleBuyers: Store.wholesaleBuyers || [],
+        settings: Store.settings,
+        exportDate: new Date().toISOString(),
+        version: '3.0'
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'gold-promise-backup-' + new Date().toISOString().split('T')[0] + '.json';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function exportExcel() {
+    if (typeof XLSX === 'undefined') {
+        return alert('Excel export requires internet connection for first use. Please connect and try again.');
+    }
+
+    // Sheet 1: All Transactions
+    const transactionsData = Store.inventory.map(i => ({
+        'Date': i.date,
+        'Serial': i.serial,
+        'Description': i.desc,
+        'Metal': i.metal,
+        'Purity': i.purity || '',
+        'Weight': i.weight,
+        'Unit': i.unit,
+        'Tier': i.tier,
+        'Buy Price': i.buyPrice,
+        'Sell Price': i.sellPrice || '',
+        'Spread': i.spread || '',
+        'Buyer': i.buyerName || '',
+        'Status': i.status,
+        'Days Held': i.daysHeld || 0
+    }));
+
+    // Sheet 2: Monthly Summary
+    const sold = Store.inventory.filter(i => i.status === 'sold' && i.sellPrice);
+    const totalRevenue = sold.reduce((sum, i) => sum + i.sellPrice, 0);
+    const totalCost = sold.reduce((sum, i) => sum + i.buyPrice, 0);
+    const totalProfit = totalRevenue - totalCost;
+
+    const monthlyData = [{
+        'Metric': 'Total Revenue',
+        'Value': totalRevenue.toFixed(2)
+    }, {
+        'Metric': 'Total Cost',
+        'Value': totalCost.toFixed(2)
+    }, {
+        'Metric': 'Gross Profit',
+        'Value': totalProfit.toFixed(2)
+    }, {
+        'Metric': 'Items Sold',
+        'Value': sold.length
+    }, {
+        'Metric': 'Avg Spread',
+        'Value': sold.length > 0 ? (totalProfit / sold.length).toFixed(2) : '0'
+    }];
+
+    // Sheet 3: By Purity
+    const purityGroups = {};
+    Store.inventory.forEach(i => {
+        const key = i.metal + '_' + (i.purity || 'unknown');
+        if (!purityGroups[key]) {
+            purityGroups[key] = {
+                metal: i.metal,
+                purity: i.purity || 'unknown',
+                count: 0,
+                totalOz: 0,
+                totalCost: 0,
+                totalRevenue: 0
+            };
+        }
+        purityGroups[key].count++;
+        const oz = i.unit === 'g' ? i.weight/31.1035 : i.unit === 'kg' ? i.weight*32.1507 : i.weight;
+        purityGroups[key].totalOz += oz;
+        purityGroups[key].totalCost += i.buyPrice;
+        if (i.sellPrice) purityGroups[key].totalRevenue += i.sellPrice;
+    });
+
+    const purityData = Object.values(purityGroups).map(p => ({
+        'Metal': p.metal,
+        'Purity': p.purity,
+        'Items': p.count,
+        'Total Oz': p.totalOz.toFixed(2),
+        'Total Cost': p.totalCost.toFixed(2),
+        'Total Revenue': p.totalRevenue.toFixed(2),
+        'Profit': (p.totalRevenue - p.totalCost).toFixed(2)
+    }));
+
+    // Sheet 4: Seller Analytics
+    const sellerData = (Store.sellers || []).map(s => ({
+        'Name': s.name,
+        'Email': s.email || '',
+        'Phone': s.phone || '',
+        'Source': s.source || '',
+        'Visits': s.visits || 1,
+        'Total Spent': s.totalSpent || 0,
+        'Date Added': s.dateAdded || ''
+    }));
+
+    // Sheet 5: Buyer Analytics
+    const buyerData = (Store.wholesaleBuyers || []).map(b => ({
+        'Name': b.name,
+        'Type': b.type,
+        'Contact': b.contact || '',
+        'Email': b.email || '',
+        'Phone': b.phone || '',
+        'Payment Terms': b.paymentTerms || '',
+        'Date Added': b.dateAdded || ''
+    }));
+
+    // Sheet 6: Current Inventory
+    const held = Store.inventory.filter(i => i.status === 'held');
+    const inventoryData = held.map(i => ({
+        'Serial': i.serial,
+        'Description': i.desc,
+        'Metal': i.metal,
+        'Purity': i.purity || '',
+        'Weight': i.weight,
+        'Unit': i.unit,
+        'Buy Price': i.buyPrice,
+        'Days Held': i.daysHeld || 0,
+        'Tier': i.tier
+    }));
+
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+
+    // Add sheets
+    const ws1 = XLSX.utils.json_to_sheet(transactionsData);
+    XLSX.utils.book_append_sheet(wb, ws1, 'All Transactions');
+
+    const ws2 = XLSX.utils.json_to_sheet(monthlyData);
+    XLSX.utils.book_append_sheet(wb, ws2, 'Monthly Summary');
+
+    const ws3 = XLSX.utils.json_to_sheet(purityData);
+    XLSX.utils.book_append_sheet(wb, ws3, 'By Purity');
+
+    const ws4 = XLSX.utils.json_to_sheet(sellerData);
+    XLSX.utils.book_append_sheet(wb, ws4, 'Seller Analytics');
+
+    const ws5 = XLSX.utils.json_to_sheet(buyerData);
+    XLSX.utils.book_append_sheet(wb, ws5, 'Buyer Analytics');
+
+    const ws6 = XLSX.utils.json_to_sheet(inventoryData);
+    XLSX.utils.book_append_sheet(wb, ws6, 'Current Inventory');
+
+    // Download
+    XLSX.writeFile(wb, 'GoldenPromise-' + new Date().toISOString().split('T')[0] + '.xlsx');
+}
+
+function importData(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+        try {
+            const data = JSON.parse(e.target.result);
+            if (data.inventory) Store.inventory = data.inventory;
+            if (data.investors) Store.investors = data.investors;
+            if (data.sellers) Store.sellers = data.sellers;
+            if (data.wholesaleBuyers) Store.wholesaleBuyers = data.wholesaleBuyers;
+            if (data.settings) Store.settings = data.settings;
+            Store.set('inventory', Store.inventory);
+            Store.set('investors', Store.investors);
+            Store.set('sellers', Store.sellers);
+            Store.set('wholesaleBuyers', Store.wholesaleBuyers);
+            Store.set('settings', Store.settings);
+            if (Store.settings.darkMode) document.body.classList.add('dark');
+            renderAll();
+            alert('Data imported successfully!');
+        } catch(err) {
+            alert('Failed to import: ' + err.message);
+        }
+    };
+    reader.readAsText(file);
+}
+
+// === UNDERWATER ITEMS MODAL ===
+function showUnderwaterItems() {
+    const held = Store.inventory.filter(i => i.status === 'held');
+    const cadRate = 1.38;
+
+    const itemsWithPL = held.map(i => {
+        const spot = Store.lastPrices[i.metal] * cadRate;
+        const oz = i.unit === 'g' ? i.weight/31.1035 : i.unit === 'kg' ? i.weight*32.1507 : i.weight;
+        const currentValue = spot * oz;
+        const plDollar = currentValue - i.buyPrice;
+        const plPct = (plDollar / i.buyPrice) * 100;
+        return { ...i, currentValue, plDollar, plPct };
+    }).sort((a, b) => a.plDollar - b.plDollar);
+
+    const underwater = itemsWithPL.filter(i => i.plDollar < 0);
+    const profitable = itemsWithPL.filter(i => i.plDollar >= 0);
+
+    let html = '<h3 style="font-size:16px;font-weight:600;margin-bottom:12px">Underwater Items (' + underwater.length + ')</h3>';
+
+    if (underwater.length > 0) {
+        html += underwater.map(i =>
+            '<div style="padding:12px;margin-bottom:8px;border:1px solid var(--border);border-radius:8px;background:rgba(239,68,68,0.05)"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><div><strong>' + i.serial + '</strong><br><span style="font-size:12px;color:#718096">' + i.desc + '</span></div><div style="text-align:right;color:var(--danger);font-weight:700;font-size:16px">' + i.plPct.toFixed(1) + '%</div></div><div style="font-size:12px;color:#718096">Cost: $' + i.buyPrice.toLocaleString() + ' → Current: $' + i.currentValue.toFixed(0) + ' (Loss: $' + Math.abs(i.plDollar).toFixed(0) + ')<br>Days held: ' + i.daysHeld + '</div></div>'
+        ).join('');
+    } else {
+        html += '<p style="color:#718096;padding:20px;text-align:center">No underwater items. All inventory is profitable!</p>';
+    }
+
+    html += '<h3 style="font-size:16px;font-weight:600;margin:20px 0 12px">Profitable Items (' + profitable.length + ')</h3>';
+
+    if (profitable.length > 0) {
+        html += profitable.slice(0, 5).map(i =>
+            '<div style="padding:12px;margin-bottom:8px;border:1px solid var(--border);border-radius:8px;background:rgba(16,185,129,0.05)"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><div><strong>' + i.serial + '</strong><br><span style="font-size:12px;color:#718096">' + i.desc + '</span></div><div style="text-align:right;color:var(--success);font-weight:700;font-size:16px">+' + i.plPct.toFixed(1) + '%</div></div><div style="font-size:12px;color:#718096">Cost: $' + i.buyPrice.toLocaleString() + ' → Current: $' + i.currentValue.toFixed(0) + ' (Gain: $' + i.plDollar.toFixed(0) + ')<br>Days held: ' + i.daysHeld + '</div></div>'
+        ).join('');
+        if (profitable.length > 5) {
+            html += '<p style="font-size:12px;color:#718096;text-align:center">... and ' + (profitable.length - 5) + ' more profitable items</p>';
+        }
+    }
+
+    document.getElementById('insightContent').innerHTML = html;
+    showModal('insightModal');
+}
+
+// === ENHANCED BACKUP FUNCTIONS ===
+function autoBackupToText() {
+    const data = {
+        inventory: Store.inventory,
+        investors: Store.investors,
+        settings: Store.settings,
+        exportDate: new Date().toISOString(),
+        manualPrices: Store.get('manualPrices', null)
+    };
+
+    const text = 'GOLD & PROMISE BACKUP - ' + new Date().toLocaleDateString() + '\n' +
+        '='.repeat(60) + '\n\n' +
+        'INVENTORY: ' + Store.inventory.length + ' items\n' +
+        'INVESTORS: ' + Store.investors.length + ' investors\n' +
+        'TOTAL VALUE: $' + Store.inventory.filter(i => i.status === 'held').reduce((s, i) => s + i.buyPrice, 0).toLocaleString() + '\n\n' +
+        '='.repeat(60) + '\n' +
+        'RAW DATA (copy this to restore):\n' +
+        '='.repeat(60) + '\n' +
+        JSON.stringify(data, null, 2);
+
+    return text;
+}
+
+function copyBackupToClipboard() {
+    const text = autoBackupToText();
+
+    // Try modern clipboard API first
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Backup copied to clipboard! Paste into Notes app to save.');
+        }).catch(() => {
+            // Fallback
+            fallbackCopyToClipboard(text);
+        });
+    } else {
+        fallbackCopyToClipboard(text);
+    }
+}
+
+function fallbackCopyToClipboard(text) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+        document.execCommand('copy');
+        alert('Backup copied! Paste into Notes app to save.');
+    } catch (err) {
+        alert('Could not copy. Use Export Data button instead.');
+    }
+    document.body.removeChild(textarea);
+}
+
+function downloadTextBackup() {
+    const text = autoBackupToText();
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'gold-promise-backup-' + new Date().toISOString().split('T')[0] + '.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// === POS FUNCTIONS ===
+let signatureCanvas, signatureCtx, isDrawing = false, lastX = 0, lastY = 0;
+let capturedSignature = null, capturedPhotos = [], scannedSerial = null;
+
+function capturePhoto() {
+    document.getElementById('photoInput').click();
+}
+
+function handlePhotoCapture(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            capturedPhotos.push(e.target.result);
+            alert('Photo captured! Total photos: ' + capturedPhotos.length);
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function scanSerial() {
+    // Try native barcode detection first (Safari 14+)
+    if ('BarcodeDetector' in window) {
+        document.getElementById('scanInput').click();
+    } else {
+        // Fallback to manual entry
+        const serial = prompt('Enter serial number manually (or use camera to read):');
+        if (serial) {
+            scannedSerial = serial;
+            document.getElementById('itemSerial').value = serial;
+            alert('Serial captured: ' + serial);
+        }
+    }
+}
+
+function handleScanCapture(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            if ('BarcodeDetector' in window) {
+                try {
+                    const barcodeDetector = new BarcodeDetector();
+                    const img = new Image();
+                    img.onload = async () => {
+                        const barcodes = await barcodeDetector.detect(img);
+                        if (barcodes.length > 0) {
+                            scannedSerial = barcodes[0].rawValue;
+                            document.getElementById('itemSerial').value = scannedSerial;
+                            alert('Barcode detected: ' + scannedSerial);
+                        } else {
+                            const serial = prompt('No barcode detected. Enter serial manually:');
+                            if (serial) {
+                                scannedSerial = serial;
+                                document.getElementById('itemSerial').value = serial;
+                            }
+                        }
+                    };
+                    img.src = e.target.result;
+                } catch(err) {
+                    const serial = prompt('Barcode detection failed. Enter serial manually:');
+                    if (serial) {
+                        scannedSerial = serial;
+                        document.getElementById('itemSerial').value = serial;
+                    }
+                }
+            } else {
+                const serial = prompt('Enter serial number from photo:');
+                if (serial) {
+                    scannedSerial = serial;
+                    document.getElementById('itemSerial').value = serial;
+                }
+            }
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function openSignaturePad() {
+    showModal('signatureModal');
+    setTimeout(() => {
+        signatureCanvas = document.getElementById('signatureCanvas');
+        const rect = signatureCanvas.getBoundingClientRect();
+        signatureCanvas.width = rect.width * (window.devicePixelRatio || 1);
+        signatureCanvas.height = rect.height * (window.devicePixelRatio || 1);
+        signatureCtx = signatureCanvas.getContext('2d');
+        signatureCtx.scale(window.devicePixelRatio || 1, window.devicePixelRatio || 1);
+        signatureCtx.strokeStyle = '#1a237e';
+        signatureCtx.lineWidth = 2;
+        signatureCtx.lineCap = 'round';
+        signatureCtx.lineJoin = 'round';
+
+        // Touch events for mobile
+        signatureCanvas.addEventListener('touchstart', startDrawing);
+        signatureCanvas.addEventListener('touchmove', draw);
+        signatureCanvas.addEventListener('touchend', stopDrawing);
+
+        // Mouse events for desktop
+        signatureCanvas.addEventListener('mousedown', startDrawing);
+        signatureCanvas.addEventListener('mousemove', draw);
+        signatureCanvas.addEventListener('mouseup', stopDrawing);
+        signatureCanvas.addEventListener('mouseleave', stopDrawing);
+    }, 100);
+}
+
+function startDrawing(e) {
+    e.preventDefault();
+    isDrawing = true;
+    const pos = getPos(e);
+    lastX = pos.x;
+    lastY = pos.y;
+}
+
+function draw(e) {
+    if (!isDrawing) return;
+    e.preventDefault();
+    const pos = getPos(e);
+    signatureCtx.beginPath();
+    signatureCtx.moveTo(lastX, lastY);
+    signatureCtx.lineTo(pos.x, pos.y);
+    signatureCtx.stroke();
+    lastX = pos.x;
+    lastY = pos.y;
+}
+
+function stopDrawing(e) {
+    e.preventDefault();
+    isDrawing = false;
+}
+
+function getPos(e) {
+    const rect = signatureCanvas.getBoundingClientRect();
+    const touch = e.touches ? e.touches[0] : e;
+    return {
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top
+    };
+}
+
+function clearSignature() {
+    signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+}
+
+function saveSignature() {
+    capturedSignature = signatureCanvas.toDataURL();
+    const preview = document.getElementById('signaturePreview');
+    preview.innerHTML = '<img src="' + capturedSignature + '" style="width:100%;height:100%;object-fit:contain;border-radius:10px">';
+    closeModal('signatureModal');
+    alert('Signature saved!');
+}
+
+function completeTransaction() {
+    const type = document.getElementById('posType').value;
+    const name = document.getElementById('posClientName').value;
+    const email = document.getElementById('posClientEmail').value;
+    const phone = document.getElementById('posClientPhone').value;
+    const source = document.getElementById('posSource').value;
+
+    if (!name) return alert('Name required');
+
+    if (type === 'buy') {
+        // Purchase from Seller - track seller and redirect to add inventory
+        const seller = {
+            id: generateId(),
+            name: name,
+            email: email,
+            phone: phone,
+            source: source,
+            dateAdded: new Date().toISOString().split('T')[0],
+            visits: 1,
+            totalSpent: 0
+        };
+
+        // Check if seller exists
+        const existing = Store.sellers.find(s =>
+            (s.email && s.email === email) ||
+            (s.phone && s.phone === phone)
+        );
+
+        if (existing) {
+            existing.visits = (existing.visits || 0) + 1;
+            Store.set('sellers', Store.sellers);
+        } else {
+            Store.sellers.push(seller);
+            Store.set('sellers', Store.sellers);
+        }
+
+        alert('Seller ' + name + ' tracked. Now add the items you purchased from them using the Add Inventory button.');
+
+        // Clear form
+        document.getElementById('posClientName').value = '';
+        document.getElementById('posClientEmail').value = '';
+        document.getElementById('posClientPhone').value = '';
+
+        renderAll();
+        showSection('inventory');
+
+    } else if (type === 'flip') {
+        // Flip to Wholesale
+        const selected = Array.from(document.querySelectorAll('#posItemList input:checked')).map(cb => cb.value);
+        if (selected.length === 0) return alert('Select at least one item to flip');
+
+        const buyerId = document.getElementById('posBuyer').value;
+        if (!buyerId) return alert('Select a wholesale buyer');
+
+        const sellPrice = parseFloat(document.getElementById('posSellPrice').value);
+        if (!sellPrice || sellPrice <= 0) return alert('Enter sell price');
+
+        const buyer = Store.wholesaleBuyers.find(b => b.id === buyerId);
+        const buyerName = buyer ? buyer.name : 'Unknown';
+
+        // Calculate total buy price
+        const items = Store.inventory.filter(i => selected.includes(i.id));
+        const totalBuyPrice = items.reduce((sum, i) => sum + i.buyPrice, 0);
+        const spread = sellPrice - totalBuyPrice;
+        const spreadPct = (spread / totalBuyPrice) * 100;
+
+        // Mark items as sold
+        items.forEach(item => {
+            item.status = 'sold';
+            item.sellPrice = sellPrice / items.length; // Distribute evenly
+            item.sellDate = new Date().toISOString().split('T')[0];
+            item.buyerName = buyerName;
+            item.buyerId = buyerId;
+            item.spread = item.sellPrice - item.buyPrice;
+            item.spreadPct = ((item.sellPrice - item.buyPrice) / item.buyPrice) * 100;
+        });
+
+        Store.set('inventory', Store.inventory);
+
+        alert('Flip completed!\n' + items.length + ' items sold to ' + buyerName + '\nBuy Price: $' + totalBuyPrice.toFixed(2) + '\nSell Price: $' + sellPrice.toFixed(2) + '\nSpread: $' + spread.toFixed(2) + ' (' + spreadPct.toFixed(1) + '%)');
+
+        // Clear form
+        document.getElementById('posClientName').value = '';
+        document.getElementById('posClientEmail').value = '';
+        document.getElementById('posClientPhone').value = '';
+        document.getElementById('posSellPrice').value = '';
+        document.querySelectorAll('#posItemList input:checked').forEach(cb => cb.checked = false);
+
+        renderAll();
+    }
+}
+
+function showAlerts() {
+    const held = Store.inventory.filter(i => i.status === 'held');
+    const alerts = held.filter(i => i.daysHeld > 45);
+    if (alerts.length === 0) return alert('No active alerts');
+    alert('Velocity Alerts:\n' + alerts.map(a => a.serial + ': ' + a.daysHeld + ' days').join('\n'));
+}
+
+// === START ===
+window.onload = init;
+window.onresize = drawCharts;
+</script>
+
+<!-- SheetJS for Excel Export -->
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+</body>
+</html>
